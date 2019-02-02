@@ -41,11 +41,6 @@ def do_nothing(df, i, _type, mkt_price) :
     
 
 def long_buy(df, i, trd_pm, broker) : 
-    
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(i, int)
-    # assert isinstance(trd_pm, TradingParams) 
-    # assert isinstance(broker, Broker) 
 
     df = do_nothing(df, i, "long" , trd_pm.price.mkt)
 
@@ -74,11 +69,6 @@ def long_buy(df, i, trd_pm, broker) :
 
 
 def long_stop_profit(df, i, trd_pm, broker) : 
-    
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(i, int)
-    # assert isinstance(trd_pm, TradingParams) 
-    # assert isinstance(broker, Broker) 
 
     df = do_nothing(df, i, "long" , trd_pm.price.mkt)
 
@@ -102,11 +92,6 @@ def long_stop_profit(df, i, trd_pm, broker) :
 
 
 def long_stop_loss(df, i, trd_pm, broker) : 
-    
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(i, int)
-    # assert isinstance(trd_pm, TradingParams) 
-    # assert isinstance(broker, Broker) 
 
     df = do_nothing(df, i, "long" , trd_pm.price.mkt)
 
@@ -130,11 +115,6 @@ def long_stop_loss(df, i, trd_pm, broker) :
 
 
 def short_buy(df, i, trd_pm, broker) :
-
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(i, int)
-    # assert isinstance(trd_pm, TradingParams) 
-    # assert isinstance(broker, Broker) 
 
     df = do_nothing(df, i, "short" , trd_pm.price.mkt)
 
@@ -165,11 +145,6 @@ def short_buy(df, i, trd_pm, broker) :
 
 def short_stop_loss(df, i, trd_pm, broker) : 
 
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(i, int)
-    # assert isinstance(trd_pm, TradingParams) 
-    # assert isinstance(broker, Broker) 
-
     df = do_nothing(df, i, "short" , trd_pm.price.mkt)
 
     if (trd_pm.short.open_trade) and (trd_pm.short.last_buy < df.loc[i, trd_pm.price.mkt]) : 
@@ -178,7 +153,7 @@ def short_stop_loss(df, i, trd_pm, broker) :
         price                           = df.loc[i, trd_pm.price.mkt]
         bank                            =   quant * price * (1 + broker.spread) \
                                           * (1 + broker.fees)
-        
+            
         df.loc[i, "short_quant"]         -= quant
         df.loc[i, "short_order_quant"]   =  -quant
         df.loc[i, "short_value"]         = df.loc[i, "short_quant"] * price
@@ -192,11 +167,6 @@ def short_stop_loss(df, i, trd_pm, broker) :
 
 
 def short_stop_profit(df, i, trd_pm, broker): 
-
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(i, int)
-    # assert isinstance(trd_pm, TradingParams) 
-    # assert isinstance(broker, Broker) 
 
     df = do_nothing(df, i, "short" , trd_pm.price.mkt)
 
@@ -222,6 +192,8 @@ def short_stop_profit(df, i, trd_pm, broker):
 
 
 def trading_room(df, trading_params, broker) : 
+
+    assert isinstance(df, pd.DataFrame)
 
     for _, i in enumerate(df.index) : # trading loop
 
