@@ -135,27 +135,6 @@ def short_buy(df, i, trd_pm, broker) :
     return df, trd_pm
 
 
-def short_stop_loss(df, i, trd_pm, broker) : 
-
-    if (trd_pm.short.open_trade) and (trd_pm.short.last_buy < df.loc[i, trd_pm.price.mkt]) : 
-        
-        quant                           = df.loc[i, "short_quant"]
-        price                           = df.loc[i, trd_pm.price.mkt]
-        bank                            =   quant * price * (1 + broker.spread) \
-                                          * (1 + broker.fees)
-            
-        df.loc[i, "short_quant"]         -= quant
-        df.loc[i, "short_order_quant"]   =  -quant
-        df.loc[i, "short_value"]         = df.loc[i, "short_quant"] * price
-        df.loc[i, "short_order_value"]   = -quant * price
-        df.loc[i, "short_bank"]          += bank
-        
-        trd_pm.short.last_buy            = -1
-        trd_pm.short.open_trade          = False
-
-    return df, trd_pm
-
-
 def short_stop_profit(df, i, trd_pm, broker): 
 
     if (trd_pm.short.open_trade) or (trd_pm.multi_trade.enable): 
@@ -177,6 +156,25 @@ def short_stop_profit(df, i, trd_pm, broker):
     return df, trd_pm
 
 
+def short_stop_loss(df, i, trd_pm, broker) : 
+
+    if (trd_pm.short.open_trade) and (trd_pm.short.last_buy < df.loc[i, trd_pm.price.mkt]) : 
+        
+        quant                           = df.loc[i, "short_quant"]
+        price                           = df.loc[i, trd_pm.price.mkt]
+        bank                            =   quant * price * (1 + broker.spread) \
+                                          * (1 + broker.fees)
+            
+        df.loc[i, "short_quant"]         -= quant
+        df.loc[i, "short_order_quant"]   =  -quant
+        df.loc[i, "short_value"]         = df.loc[i, "short_quant"] * price
+        df.loc[i, "short_order_value"]   = -quant * price
+        df.loc[i, "short_bank"]          += bank
+        
+        trd_pm.short.last_buy            = -1
+        trd_pm.short.open_trade          = False
+
+    return df, trd_pm
 
 
 def trading_room(df, trading_params, broker) : 
@@ -186,7 +184,7 @@ def trading_room(df, trading_params, broker) :
     for _, i in enumerate(df.index) : # trading loop
 
         if trading_params.first:  # first
-            df.loc[i, "long_bank"] = trading_params.long.bank_init
+            df.loc[i, "long_bank"]  = trading_params.long.bank_init
             df.loc[i, "short_bank"] = trading_params.short.bank_init
             trading_params.first = False
             continue
@@ -215,8 +213,17 @@ def trading_room(df, trading_params, broker) :
             elif df.loc[i, "short_indicator"] == -1 :  # stop loss
                 df, trading_params = short_stop_loss(df, i, trading_params, broker) 
 
-    df["total"] = df.long_bank + df.short_bank + df.long_value + df.short_value
 
+    # last round force to sell ! 
+    i = df.index[-1]
+    df, trading_params = long_stop_profit(df, i, trading_params, broker)
+    df, trading_params = short_stop_profit(df, i, trading_params, broker)
+
+    df["long_total"] = df.long_bank + df.long_value
+    df["short_total"] = df.short_bank + df.short_value
+    
+    df["total"] = df.long_total + df.short_total
+    
     return df, trading_params
 
 

@@ -65,7 +65,7 @@ broker = Broker(C.FEES, C.SPREAD, C.ROLL_OVER)
 
 # time selection
 # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
-time_sel = TimeSel(True, "2017-01-13", "2019-01-04")
+time_sel = TimeSel(True, "2016-01-13", "2019-01-04")
 
 # random selection
 # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
@@ -79,10 +79,10 @@ output = Output(C.GRAPHS, C.TEMP_FILES, C.PRINT_RESULTS, paths.temp_path)
 #                                 C.MULTI_TRADE_MAX, 
 #                                 C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE,
 #                                 C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
-trading_params = TradingParams( "trading", False, False, True, 
+trading_params = TradingParams( "trading", False, True, True, 
                                 99999, 
-                                100.0, 1.0, "%",
-                                100.0, 1.0, "%")
+                                1000.0, 1.0, "%",
+                                1000.0, 1.0, "%")
 
 
 
@@ -151,8 +151,8 @@ del DF
 
 
 # graphs options
-if output.graphs : fig, axs = plt.subplots(random_sel.nb, sharex=True)
-if not isinstance(axs, Iterable) : axs = [axs,] 
+# if output.graphs : fig, axs = plt.subplots(random_sel.nb, sharex=True)
+# if not isinstance(axs, Iterable) : axs = [axs,] 
 
 
 # list of result
@@ -256,12 +256,14 @@ for random_nb in range(random_sel.nb) :
    
 
 
-fig, axs = plt.subplots(2,1, sharex= True)
+fig, axs = plt.subplots(4, 1, sharex= True)
+_df = df.loc[:, ["date", "open", "total", "long_total", "short_total"]]               
+_df.columns = ["date", "price", "portfolio", "long_total", "short_total"]                                                         
 
-_df = df.set_index("date", drop = True, inplace=False).loc[:, ["open", "total"]]               
-_df.columns = ["price", "portfolio"]                                                           
-axs[0].plot(_df.price)      
-axs[1].plot(_df.portfolio)
+for i, txt in enumerate(["price", "portfolio", "long_total", "short_total"]) : 
+    axs[i].plot("date", txt, data=_df) 
+    axs[i].legend(loc="upper left")
+
 
 
 #     if GRAPHS : 
