@@ -42,8 +42,6 @@ def do_nothing(df, i, _type, mkt_price) :
 
 def long_buy(df, i, trd_pm, broker) : 
 
-    df = do_nothing(df, i, "long" , trd_pm.price.mkt)
-
     if (not trd_pm.long.open_trade) or (trd_pm.multi_trade.enable): 
 
         if trd_pm.long.size_type == "val" : 
@@ -70,8 +68,6 @@ def long_buy(df, i, trd_pm, broker) :
 
 def long_stop_profit(df, i, trd_pm, broker) : 
 
-    df = do_nothing(df, i, "long" , trd_pm.price.mkt)
-
     if (trd_pm.long.open_trade) or (trd_pm.multi_trade.enable): 
         
         quant                           = df.loc[i, "long_quant"]
@@ -93,8 +89,6 @@ def long_stop_profit(df, i, trd_pm, broker) :
 
 def long_stop_loss(df, i, trd_pm, broker) : 
 
-    df = do_nothing(df, i, "long" , trd_pm.price.mkt)
-
     if trd_pm.long.open_trade and (trd_pm.long.last_buy > df.loc[i, trd_pm.price.mkt]): 
 
         quant                           = df.loc[i, "long_quant"]
@@ -115,8 +109,6 @@ def long_stop_loss(df, i, trd_pm, broker) :
 
 
 def short_buy(df, i, trd_pm, broker) :
-
-    df = do_nothing(df, i, "short" , trd_pm.price.mkt)
 
     if (not trd_pm.short.open_trade) or (trd_pm.multi_trade.enable): 
 
@@ -145,8 +137,6 @@ def short_buy(df, i, trd_pm, broker) :
 
 def short_stop_loss(df, i, trd_pm, broker) : 
 
-    df = do_nothing(df, i, "short" , trd_pm.price.mkt)
-
     if (trd_pm.short.open_trade) and (trd_pm.short.last_buy < df.loc[i, trd_pm.price.mkt]) : 
         
         quant                           = df.loc[i, "short_quant"]
@@ -167,8 +157,6 @@ def short_stop_loss(df, i, trd_pm, broker) :
 
 
 def short_stop_profit(df, i, trd_pm, broker): 
-
-    df = do_nothing(df, i, "short" , trd_pm.price.mkt)
 
     if (trd_pm.short.open_trade) or (trd_pm.multi_trade.enable): 
 
@@ -203,22 +191,22 @@ def trading_room(df, trading_params, broker) :
             trading_params.first = False
             continue
 
+        # do nothing
+        df = do_nothing(df, i, "long", trading_params.price.mkt)
+        df = do_nothing(df, i, "short", trading_params.price.mkt)
+
+
         # long
         if trading_params.long.enable : 
             if df.loc[i, "long_indicator"] == 2 : # buy
                 df, trading_params = long_buy(df, i, trading_params, broker) 
-
             elif df.loc[i, "long_indicator"] == -2 : # stop profit
                 df, trading_params = long_stop_profit(df, i, trading_params, broker)
             elif df.loc[i, "long_indicator"] == -1 :  # stop loss
                 df, trading_params = long_stop_loss(df, i, trading_params, broker) 
-            else : # do nothing
-                df = do_nothing(df, i, "long", trading_params.price.mkt)
-        else : # do nothing
-            df = do_nothing(df, i, "long", trading_params.price.mkt)
 
 
-        # short 
+        # short
         if trading_params.short.enable : 
             if df.loc[i, "short_indicator"] == 2 : # buy
                 df, trading_params = short_buy(df, i, trading_params, broker) 
@@ -226,10 +214,6 @@ def trading_room(df, trading_params, broker) :
                 df, trading_params = short_stop_profit(df, i, trading_params, broker)
             elif df.loc[i, "short_indicator"] == -1 :  # stop loss
                 df, trading_params = short_stop_loss(df, i, trading_params, broker) 
-            else : # do nothing
-                df = do_nothing(df, i, "short", trading_params.price.mkt)
-        else : # do nothing
-            df = do_nothing(df, i, "short", trading_params.price.mkt)
 
     df["total"] = df.long_bank + df.short_bank + df.long_value + df.short_value
 

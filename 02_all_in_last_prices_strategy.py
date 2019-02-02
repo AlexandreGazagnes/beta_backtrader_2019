@@ -79,7 +79,7 @@ output = Output(C.GRAPHS, C.TEMP_FILES, C.PRINT_RESULTS, paths.temp_path)
 #                                 C.MULTI_TRADE_MAX, 
 #                                 C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE,
 #                                 C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
-trading_params = TradingParams( "trading", False, True, True, 
+trading_params = TradingParams( "trading", False, False, True, 
                                 99999, 
                                 100.0, 1.0, "%",
                                 100.0, 1.0, "%")
