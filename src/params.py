@@ -17,6 +17,10 @@ class Path() :
         # check args
         if path[-1] != "/" : path += "/"
 
+        for fol in ['data', "results", "temp"] : 
+            if not os.path.isdir(path+fol+"/") : 
+                os.mkdir(path+fol+"/")
+
         assert os.path.isdir(path)
         self.master_path = path
        

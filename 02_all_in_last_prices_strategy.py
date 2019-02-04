@@ -65,7 +65,7 @@ broker = Broker(C.FEES, C.SPREAD, C.ROLL_OVER)
 
 # time selection
 # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
-time_sel = TimeSel(True, "2016-01-13", "2019-01-04")
+time_sel = TimeSel(True, "2012-01-13", "2019-01-04")
 
 # random selection
 # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
