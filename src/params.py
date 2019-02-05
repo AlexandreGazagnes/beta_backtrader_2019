@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+# import 
 
 # built-in
-import os, sys, datetime, time, pickle
+import os
 import pandas as pd
 
 # 3rd party
-from src.consts import *
+from config.consts import *
 
+
+# params
 
 class Path() : 
 
@@ -42,19 +45,6 @@ class Path() :
 
 # ------------------------------------------------------------
 
-# # nb of last prices taken
-# try : 
-#     LAST_PRICES 
-#     _ = True
-# except : 
-#     _ = False
-
-# if _ : 
-#     assert isinstance(LAST_PRICES, int)
-#     assert ((LAST_PRICES >= 1) and (LAST_PRICES <= 10))
-
-
-# ------------------------------------------------------------
 
 # fees and spread
 
@@ -348,11 +338,3 @@ if not __name__ == '__main__':
 
 
 
-class Test() : 
-
-    def __init__(self) : 
-        self.x = 12
-        self.y = 13
-
-    def __getattr__(self, _) : 
-        return self.y

@@ -2,24 +2,24 @@
 # coding: utf-8
 
 
-# built-in
-import os, sys, datetime, time, pickle
-from math import pi
-from collections import Iterable 
-from time import gmtime, strftime 
+# # built-in
+# import os, sys, datetime, time, pickle
+# from math import pi
+# from collections import Iterable 
+# from time import gmtime, strftime 
 
 
-# data 
-import pandas as pd 
-import numpy as np 
-import matplotlib.pyplot as plt
-from mpl_finance import candlestick_ohlc
+# # data 
+# import pandas as pd 
+# import numpy as np 
+# import matplotlib.pyplot as plt
+# from mpl_finance import candlestick_ohlc
 
 
-# visualizitation
-import seaborn as sns
-from bokeh.sampledata.stocks import MSFT
-from bokeh.plotting import figure, show, output_file
+# # visualizitation
+# import seaborn as sns
+# from bokeh.sampledata.stocks import MSFT
+# from bokeh.plotting import figure, show, output_file
 
 # %matplotlib
 

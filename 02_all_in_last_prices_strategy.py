@@ -48,7 +48,8 @@ from src.build import *
 from src.transfo import *
 #from src.consts import *
 from src.params import * 
-from src.trading import * 
+from src.trading import *
+from strats import * 
 
 
 ####################################################################
@@ -65,7 +66,7 @@ broker = Broker(C.FEES, C.SPREAD, C.ROLL_OVER)
 
 # time selection
 # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
-time_sel = TimeSel(True, "2012-01-13", "2019-01-04")
+time_sel = TimeSel(False, "2012-01-13", "2019-01-04")
 
 # random selection
 # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
@@ -81,51 +82,12 @@ output = Output(C.GRAPHS, C.TEMP_FILES, C.PRINT_RESULTS, paths.temp_path)
 #                                 C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
 trading_params = TradingParams( "trading", False, True, True, 
                                 99999, 
-                                1000.0, 1.0, "%",
-                                1000.0, 1.0, "%")
+                                1.3, 1.0, "%",
+                                1.3, 1.0, "%")
 
 
 
-####################################################################
-#       FUNCTIONS
-####################################################################
-
-# strategy functions
-# -----------------------------------------------------------
-
-def strategy_dataframe(df, price_ref) :
-
-    # args check
-    if not isinstance(df, pd.DataFrame) : 
-        raise TypeError("'df' must be a pd.DataFrame object")
-
-    last_prices=4
-
-    # build last prices
-    for i in range(1, 1+last_prices) : 
-        df["last_"+str(i)+"_week"] = round(100 *  (df[ref_price] - df[ref_price].shift(i)) / df[ref_price].shift(i),2)
-
-    # build primary indicators
-    cols =  [ i for i in df.columns if "last" in i]
-    df["all_green"]    = (df.loc[:, cols] > 0).all(axis = 1)
-    df["all_red"]      = (df.loc[:, cols] < 0).all(axis = 1)
-    df["long_indicator"]        = 0
-    df["short_indicator"]       = 0
-
-    df.loc[df["all_green"] == True , "long_indicator"] = 2
-    df.loc[df["last_1_week"] < 0, "long_indicator"]    = -1
-    df.loc[df["all_red"] == True, "long_indicator"]    = -2
-
-    df.loc[df["all_red"] == True, "short_indicator"]    = 2
-    df.loc[df["last_1_week"] > 0, "short_indicator"]    = -1
-    df.loc[df["all_green"] == True , "short_indicator"] = -2
-
-
-    # drop ligns without indicators
-    df = df.iloc[last_prices:, :].copy()
-    df.index = list(range(len(df.index)))
-
-    return df
+strategy_dataframe = last_prices.strategy
 
 
 
@@ -206,12 +168,10 @@ for random_nb in range(random_sel.nb) :
         
         for ref_price in REF_PRICES :   # 3rd loop for each ref prices
 
-            # log
-            # print("\t\tref_price : ", str(ref_price ))
             
             # df ops
             day_df = pk_load("day_df", paths.temp_path)
-            df = strategy_dataframe(day_df, ref_price)            
+            df = strategy_dataframe(day_df, ref_price, 3)            
             del day_df
 
             # update trading_params
@@ -235,11 +195,11 @@ for random_nb in range(random_sel.nb) :
             # compute gains
             market_start = df[ref_price].iloc[0]
             market_stop  = df[ref_price].iloc[-1]
-            market_results = round(100 * (market_stop - market_start) / market_start, 2)
+            market_results = round((market_stop - market_start) / market_start, 2)
 
             trade_start = df["total"].iloc[0]
             trade_stop  = df["total"].iloc[-1]
-            trade_results = round(100 * (trade_stop - trade_start) / trade_start, 2)
+            trade_results = round((trade_stop - trade_start) / trade_start, 2)
 
             ref_price_results[ref_price] = (trade_results,market_results)
 #           ref_price_results[ref_price] = pd.Series(dict(trade_results=trade_results, market_results=market_results))
