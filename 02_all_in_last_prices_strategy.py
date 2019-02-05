@@ -66,7 +66,7 @@ broker = Broker(C.FEES, C.SPREAD, C.ROLL_OVER)
 
 # time selection
 # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
-time_sel = TimeSel(False, "2012-01-13", "2019-01-04")
+time_sel = TimeSel(True, "2015-01-13", "2019-01-04")
 
 # random selection
 # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
@@ -89,6 +89,7 @@ trading_params = TradingParams( "trading", False, True, True,
 
 strategy_dataframe = last_prices.strategy
 
+TIMES = list()
 
 
 ####################################################################
@@ -96,129 +97,133 @@ strategy_dataframe = last_prices.strategy
 #   MAIN
 
 ####################################################################
-t0 = time()
+for i in range(10) : 
+    t0 = time()
 
-# init start
-# -----------------------------------------------------------
+    # init start
+    # -----------------------------------------------------------
 
-#   init and prepare dataframe
-DF          = init_dataframe(paths.data_file, time_sel, delta_max="8 days", enhance_date=True)
-REF_PRICES  = set_ref_prices(DF)
-REF_DAYS    = set_ref_days(DF)
-
-
-# save primary DF
-pk_save(DF, "DF", paths.temp_path)
-del DF
+    #   init and prepare dataframe
+    DF          = init_dataframe(paths.data_file, time_sel, delta_max="8 days", enhance_date=True)
+    REF_PRICES  = set_ref_prices(DF)
+    REF_DAYS    = set_ref_days(DF)
 
 
-# graphs options
-# if output.graphs : fig, axs = plt.subplots(random_sel.nb, sharex=True)
-# if not isinstance(axs, Iterable) : axs = [axs,] 
-
-
-# list of result
-random_results = pd.Series(index=range(random_sel.nb), name="random_results", dtype=object)
-random_results.index.name = "random_nb"
-
-# -----------------------------------------------------------
-# init stop
-
-
-
-# loop start
-# ------------------------------------------------------------
-
-# main loop : for various random timestamp
-for random_nb in range(random_sel.nb) : 
-
-    # log
-    # print("random_nb : ", str(random_nb))
-
-    # df ops
-    DF = pk_load("DF", paths.temp_path)
-    # choose a random timestamp if needed
-    if random_sel.val :   random_df = randomize_dataframe(DF, random_sel)
-    else :                random_df = DF.copy()
-    pk_save(random_df, "random_df", paths.temp_path)
-    del random_df
+    # save primary DF
+    pk_save(DF, "DF", paths.temp_path)
     del DF
 
-    # results
-    day_results = pd.DataFrame(index=REF_DAYS, columns=REF_PRICES, dtype=object)
-    day_results.index.name = "day"
-    day_results.columns.name= "ref_price"
 
-    # second loop for each day
-    for day in REF_DAYS :     
+    # graphs options
+    # if output.graphs : fig, axs = plt.subplots(random_sel.nb, sharex=True)
+    # if not isinstance(axs, Iterable) : axs = [axs,] 
+
+
+    # list of result
+    random_results = pd.Series(index=range(random_sel.nb), name="random_results", dtype=object)
+    random_results.index.name = "random_nb"
+
+    # -----------------------------------------------------------
+    # init stop
+
+
+
+    # loop start
+    # ------------------------------------------------------------
+
+    # main loop : for various random timestamp
+    for random_nb in range(random_sel.nb) : 
 
         # log
-        # print("\tday : ", str(day))
+        # print("random_nb : ", str(random_nb))
 
         # df ops
-        random_df = pk_load("random_df", paths.temp_path)
-        day_df = week_day_dataframe(random_df, day)  # select day df
-        pk_save(day_df, "day_df", paths.temp_path)      
+        DF = pk_load("DF", paths.temp_path)
+        # choose a random timestamp if needed
+        if random_sel.val :   random_df = randomize_dataframe(DF, random_sel)
+        else :                random_df = DF.copy()
+        pk_save(random_df, "random_df", paths.temp_path)
         del random_df
-        del day_df
+        del DF
 
         # results
-        ref_price_results =  pd.Series(index=REF_PRICES,  dtype=object)
-        ref_price_results.index.name = "ref_price"
-        
-        for ref_price in REF_PRICES :   # 3rd loop for each ref prices
+        day_results = pd.DataFrame(index=REF_DAYS, columns=REF_PRICES, dtype=object)
+        day_results.index.name = "day"
+        day_results.columns.name= "ref_price"
 
-            
+        # second loop for each day
+        for day in REF_DAYS :     
+
+            # log
+            # print("\tday : ", str(day))
+
             # df ops
-            day_df = pk_load("day_df", paths.temp_path)
-            df = strategy_dataframe(day_df, ref_price, 3)            
+            random_df = pk_load("random_df", paths.temp_path)
+            day_df = week_day_dataframe(random_df, day)  # select day df
+            pk_save(day_df, "day_df", paths.temp_path)      
+            del random_df
             del day_df
 
-            # update trading_params
-            trading_params.price.ref = ref_price
-            trading_params.update_before_trading(df)
+            # results
+            ref_price_results =  pd.Series(index=REF_PRICES,  dtype=object)
+            ref_price_results.index.name = "ref_price"
             
+            for ref_price in REF_PRICES :   # 3rd loop for each ref prices
 
-            # -------------------------------------------------------------
+                
+                # df ops
+                day_df = pk_load("day_df", paths.temp_path)
+                df = strategy_dataframe(day_df, ref_price, 3)            
+                del day_df
 
-            # trading
-            df, trading_params = trading_room(df, trading_params, broker)
+                # update trading_params
+                trading_params.price.ref = ref_price
+                trading_params.update_before_trading(df)
+                
 
-            # --------------------------------------------------------------
+                # -------------------------------------------------------------
 
-            if output.dataframes : 
-                filename = ["_" + str(i) for i in [ref_price, df.date[0].day_name(), df.date.iloc[0], df.date.iloc[-1]]] 
-                filename = "".join(filename).replace("-", "").replace(":", "")
-                filename = "temp" + filename + ".csv"
-                df.to_csv(paths.temp_path+filename, index=False)
+                # trading
+                df, trading_params = trading_room(df, trading_params, broker)
 
-            # compute gains
-            market_start = df[ref_price].iloc[0]
-            market_stop  = df[ref_price].iloc[-1]
-            market_results = round((market_stop - market_start) / market_start, 2)
+                # --------------------------------------------------------------
 
-            trade_start = df["total"].iloc[0]
-            trade_stop  = df["total"].iloc[-1]
-            trade_results = round((trade_stop - trade_start) / trade_start, 2)
+                if output.dataframes : 
+                    filename = ["_" + str(i) for i in [ref_price, df.date[0].day_name(), df.date.iloc[0], df.date.iloc[-1]]] 
+                    filename = "".join(filename).replace("-", "").replace(":", "")
+                    filename = "temp" + filename + ".csv"
+                    df.to_csv(paths.temp_path+filename, index=False)
 
-            ref_price_results[ref_price] = (trade_results,market_results)
-#           ref_price_results[ref_price] = pd.Series(dict(trade_results=trade_results, market_results=market_results))
+                # compute gains
+                market_start = df[ref_price].iloc[0]
+                market_stop  = df[ref_price].iloc[-1]
+                market_results = round((market_stop - market_start) / market_start, 2)
 
-        day_results.loc[day, :] = ref_price_results.copy()
+                trade_start = df["total"].iloc[0]
+                trade_stop  = df["total"].iloc[-1]
+                trade_results = round((trade_stop - trade_start) / trade_start, 2)
 
-    random_results[random_nb] = day_results.copy()
+                ref_price_results[ref_price] = (trade_results,market_results)
+    #           ref_price_results[ref_price] = pd.Series(dict(trade_results=trade_results, market_results=market_results))
 
-    # show results
-    if output.prints :
-        print("\n\n")
-        print(random_nb)
-        print(str(df.date.iloc[0]) + " --> " + str(df.date.iloc[-1]))
-        print(day_results)
-   
+            day_results.loc[day, :] = ref_price_results.copy()
 
-# time
-print(str(round(time() - t0),4))
+        random_results[random_nb] = day_results.copy()
 
+        # show results
+        if not output.prints :
+            print("\n\n")
+            print(random_nb)
+            print(str(df.date.iloc[0]) + " --> " + str(df.date.iloc[-1]))
+            print(day_results)
+       
+
+    # time
+    timer = round(time() - t0,4)
+    print(str(timer))
+    TIMES.append(timer)
+
+print(TIMES)
 
 # graph
 fig, axs = plt.subplots(4, 1, sharex= True)
