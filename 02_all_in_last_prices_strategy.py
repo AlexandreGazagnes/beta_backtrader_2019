@@ -21,22 +21,22 @@
 
 # built-in
 import os, sys, datetime, time, pickle
-from math import pi
+# from math import pi
 from collections import Iterable 
-from time import gmtime, strftime 
+from time import gmtime, strftime, time
 
 
 # data 
-import pandas as pd 
-import numpy as np 
+# import pandas as pd 
+# import numpy as np 
 import matplotlib.pyplot as plt
-from mpl_finance import candlestick_ohlc
+# from mpl_finance import candlestick_ohlc
 
 
-# visualizitation
+# # visualizitation
 import seaborn as sns
-from bokeh.sampledata.stocks import MSFT
-from bokeh.plotting import figure, show, output_file
+# from bokeh.sampledata.stocks import MSFT
+# from bokeh.plotting import figure, show, output_file
 
 %matplotlib
 sns.set()
@@ -96,7 +96,7 @@ strategy_dataframe = last_prices.strategy
 #   MAIN
 
 ####################################################################
-
+t0 = time()
 
 # init start
 # -----------------------------------------------------------
@@ -208,6 +208,7 @@ for random_nb in range(random_sel.nb) :
 
     random_results[random_nb] = day_results.copy()
 
+    # show results
     if output.prints :
         print("\n\n")
         print(random_nb)
@@ -215,7 +216,11 @@ for random_nb in range(random_sel.nb) :
         print(day_results)
    
 
+# time
+print(str(round(time() - t0),4))
 
+
+# graph
 fig, axs = plt.subplots(4, 1, sharex= True)
 _df = df.loc[:, ["date", "open", "total", "long_total", "short_total"]]               
 _df.columns = ["date", "price", "portfolio", "long_total", "short_total"]                                                         
