@@ -2,6 +2,7 @@
 # coding: utf-8
 
 
+
 # # built-in
 # import os, sys, datetime, time, pickle
 # from math import pi
@@ -19,7 +20,6 @@ import pandas as pd
 
 # trading functions
 # -----------------------------------------------------------
-
 
 def do_nothing(df, i, _type, mkt_price) : 
 
@@ -221,7 +221,6 @@ def trading_room(df, trading_params, broker) :
 
     df["long_total"] = df.long_bank + df.long_value
     df["short_total"] = df.short_bank + df.short_value
-    
     df["total"] = df.long_total + df.short_total
     
     return df, trading_params
@@ -238,3 +237,7 @@ def compute_trading_results(df, ref_price) :
     trade_results = round((trade_stop - trade_start) / trade_start, 2)
 
     return (trade_results, market_results)
+
+
+def compare_trading_vs_market_results(df) : 
+    pass

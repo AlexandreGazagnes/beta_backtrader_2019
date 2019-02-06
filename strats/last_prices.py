@@ -2,9 +2,13 @@
 # coding: utf-8
 
 
+
 import pandas as pd
 
-# last prices
+
+
+# Last prices Strategy
+# -----------------------------------------------------------
 
 def strategy(df, ref_price, last_prices) :
 
@@ -22,8 +26,7 @@ def strategy(df, ref_price, last_prices) :
     cols                        =  [ i for i in df.columns if "last" in i]
     df["all_green"]             = (df.loc[:, cols] > 0).all(axis = 1)
     df["all_red"]               = (df.loc[:, cols] < 0).all(axis = 1)
-    df["long_indicator"]        = 0
-    df["short_indicator"]       = 0
+
 
     # def long_buy, long_stop_loss, long_stop_profit
     df.loc[df["all_green"] == True , "long_indicator"]      =  2

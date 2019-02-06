@@ -2,6 +2,7 @@
 # coding: utf-8
 
 
+
 # # built-in
 # import os, sys, datetime, time, pickle
 # from math import pi
@@ -25,11 +26,10 @@
 
 
 
-
 # dataframe preparation functions
 # -----------------------------------------------------------
 
-def randomize_dataframe(df, random_sel) : 
+def random_dataframe(df, random_sel) : 
   
     while True : 
         start = np.random.randint(0, len(df.index)-1)   

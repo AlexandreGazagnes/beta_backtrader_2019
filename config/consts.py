@@ -1,28 +1,19 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-####################################################################
-#       CONSTANTS
-####################################################################
 
 
 # file and path
+# ------------------------------------------------------------
 
 PATH                        = "/home/alex/beta_backtrader_2019/"
 FILE                        = "dowjones_usd_abcbourse_ok.csv"
 FILE                      	= "eth_usd_ethermine_ok.csv"
 
 
-# ------------------------------------------------------------
-
-# nb of last prices taken
-
-# LAST_PRICES               = 4
-
-
-# ------------------------------------------------------------
 
 # fees and spread
+# ------------------------------------------------------------
 
 FEES                        = 0.3 / 100     
 # trading fees (per order)
@@ -33,24 +24,20 @@ ROLL_OVER                   = 0.06 / 100
 # renting fees fort short (for 24h)      
 
 
-# ------------------------------------------------------------
 
 # Time selection 
-
-TIME_SELECT                 = True
-
-TIME_START                  = "2007-10-03"  # english format
-
-TIME_STOP                   = "2019-01-03"
-
-FORCE_WORKDAYS                    = False
-# for real market (not crypto) delete saturdays and sundays tickers, type bool
-
-           
-
 # ------------------------------------------------------------
 
-# random period and tests
+TIME_SELECT                 = True
+TIME_START                  = "2007-10-03"  # english format
+TIME_STOP                   = "2019-01-03"
+FORCE_WORKDAYS                    = False
+# for real market (not crypto) delete saturdays and sundays tickers, type bool
+           
+
+
+# random periods
+# ------------------------------------------------------------
 
 RANDOMIZE                   = False         
 # if you want to take a random sample of your dataset), type bool
@@ -63,9 +50,9 @@ ENABLE_REVERSE              = False
 # from recent to old, type bool 
 
 
-# ------------------------------------------------------------
 
-# output
+# outputs
+# ------------------------------------------------------------
 
 GRAPHS                      = True
 # print and temp save the graphs, type bool
@@ -78,9 +65,10 @@ PRINT_RESULTS               = True
 # !!!!!!!!!!
 
 
+
+# trading main features
 # ------------------------------------------------------------
 
-# trade
 VERSION                           = "trading"
 # define your startegy, styp str, trading or invest
  
@@ -97,9 +85,9 @@ ENABLE_SHORT                = False
 # enable short, type bool
 
 
-# ------------------------------------------------------------
 
 # money management
+# ------------------------------------------------------------
 
 LONG_BANK_INIT              = 20
 # money reserved for long poisitions, type int 

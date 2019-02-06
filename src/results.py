@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
+
+
 import numpy as np
 from collections import Iterable
 from itertools import product
 
 
 
+# Results class
+# -----------------------------------------------------------
+
 class Results() : 
     
-    def __init__(self, axis_struct, data_label, start_stop): 
+    def __init__(self, axis_struct, data_label, start_stop, strategy_name): 
 
         assert isinstance(axis_struct,  Iterable)
         for i,j in axis_struct : 
@@ -36,6 +41,10 @@ class Results() :
         return f"{self.axis_struct}\n{self.data_label}\n{self.start_stop}\n{self.m.shape}"
 
 
+    def reduce_dims_if_possible(self) : 
+        pass
+
+
     def sep_trd_mkt_results(self) : 
 
         new_shape = self.m.shape[:-1]
@@ -45,9 +54,4 @@ class Results() :
         for i, j, k in product(*[list(range(self.m.shape[i])) for i in [i for i,j in enumerate(new_shape)]]):
             self.mkt_results[i,j,k] = self.m[i,j,k,1]
             self.trd_results[i,j,k] = self.m[i,j,k,0]
-
-
-
-
-
 

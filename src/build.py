@@ -2,12 +2,14 @@
 # coding: utf-8
 
 
+
 import pandas as pd
 import numpy as np
 import datetime
 
 
-# init functions
+
+# dataFrame init and building functions
 # -----------------------------------------------------------
 
 def init_dataframe(filepath, time_sel, delta_max="5 days", enhance_date=True) : 
@@ -132,6 +134,8 @@ def init_dataframe(filepath, time_sel, delta_max="5 days", enhance_date=True) :
     df["short_value"]           = 0.0
     df["short_order_quant"]     = 0.0
     df["short_order_value"]     = 0.0
+    df["long_total"]            = 0.0 
+    df["short_total"]           = 0.0 
     df["total"]                 = 0.0
 
     return df

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# import 
+
 
 # built-in
 import os
@@ -11,7 +11,9 @@ import pandas as pd
 from config.consts import *
 
 
+
 # params
+# -----------------------------------------------------------
 
 class Path() : 
 
@@ -43,10 +45,6 @@ class Path() :
 
         return str(self.__dict__).replace(",", ",\n")
 
-# ------------------------------------------------------------
-
-
-# fees and spread
 
 class Broker() : 
 
@@ -66,10 +64,6 @@ class Broker() :
         return str(self.__dict__).replace(",", ",\n")
 
   
-# ------------------------------------------------------------
-
-# Time selection
-
 class TimeSel() : 
     
     def __init__(self, val, start=None, stop=None, force_workdays=False) : 
@@ -104,10 +98,6 @@ class TimeSel() :
         return str(self.__dict__).replace(",", ",\n")
 
 
-# ------------------------------------------------------------
-
-# random period and tests
-
 class RandomSel() : 
 
     def __init__(self, val, nb=10, period_min=300, reverse=False) : 
@@ -139,9 +129,6 @@ class RandomSel() :
         return str(self.__dict__).replace(",", ",\n")
 
 
-# ------------------------------------------------------------
-
-
 class Output() : 
 
     def __init__(self, graphs=True, dataframes=True, prints=True, path=None) : 
@@ -161,12 +148,6 @@ class Output() :
     def __repr__(self) : 
 
         return str(self.__dict__).replace(",", ",\n")
-
-
-# ------------------------------------------------------------
-
-# trade
-
 
 
 class MultiTrade(): 
@@ -279,7 +260,6 @@ class TradingParams() :
     def __repr__(self) : 
 
         return str(self.__dict__).replace(",", ",\n\n").replace(": ",": \n") # .replace("{", "{\n\t") # .replace(",", ",\n") 
-
 
 
 class Consts() : 
