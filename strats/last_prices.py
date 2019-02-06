@@ -19,20 +19,21 @@ def strategy(df, ref_price, last_prices) :
         df["last_"+str(i)+"_week"] = round(100 *  (df[ref_price] - df[ref_price].shift(i)) / df[ref_price].shift(i),2)
 
     # build primary indicators
-    cols =  [ i for i in df.columns if "last" in i]
-    df["all_green"]    = (df.loc[:, cols] > 0).all(axis = 1)
-    df["all_red"]      = (df.loc[:, cols] < 0).all(axis = 1)
+    cols                        =  [ i for i in df.columns if "last" in i]
+    df["all_green"]             = (df.loc[:, cols] > 0).all(axis = 1)
+    df["all_red"]               = (df.loc[:, cols] < 0).all(axis = 1)
     df["long_indicator"]        = 0
     df["short_indicator"]       = 0
 
-    df.loc[df["all_green"] == True , "long_indicator"] = 2
-    df.loc[df["last_1_week"] < 0, "long_indicator"]    = -1
-    df.loc[df["all_red"] == True, "long_indicator"]    = -2
+    # def long_buy, long_stop_loss, long_stop_profit
+    df.loc[df["all_green"] == True , "long_indicator"]      =  2
+    df.loc[df["last_1_week"] < 0, "long_indicator"]         = -1
+    df.loc[df["all_red"] == True, "long_indicator"]         = -2
 
-    df.loc[df["all_red"] == True, "short_indicator"]    = 2
-    df.loc[df["last_1_week"] > 0, "short_indicator"]    = -1
-    df.loc[df["all_green"] == True , "short_indicator"] = -2
-
+    # def short_buy, short_stop_loss, short_stop_profit
+    df.loc[df["all_red"] == True, "short_indicator"]        =  2
+    df.loc[df["last_1_week"] > 0, "short_indicator"]        = -1
+    df.loc[df["all_green"] == True , "short_indicator"]     = -2
 
     # drop ligns without indicators
     df = df.iloc[last_prices:, :].copy()

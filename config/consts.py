@@ -10,7 +10,7 @@
 
 PATH                        = "/home/alex/beta_backtrader_2019/"
 FILE                        = "dowjones_usd_abcbourse_ok.csv"
-# FILE                      	= "eth_usd_ethermine_ok.csv"
+FILE                      	= "eth_usd_ethermine_ok.csv"
 
 
 # ------------------------------------------------------------

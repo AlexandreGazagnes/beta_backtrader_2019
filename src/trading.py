@@ -227,4 +227,14 @@ def trading_room(df, trading_params, broker) :
     return df, trading_params
 
 
+def compute_trading_results(df, ref_price) : 
 
+    market_start = df[ref_price].iloc[0]
+    market_stop  = df[ref_price].iloc[-1]
+    market_results = round((market_stop - market_start) / market_start, 2)
+
+    trade_start = df["total"].iloc[0]
+    trade_stop  = df["total"].iloc[-1]
+    trade_results = round((trade_stop - trade_start) / trade_start, 2)
+
+    return (trade_results, market_results)

@@ -6,12 +6,12 @@
 import pickle
 # import os, sys, datetime, time, pickle
 # from math import pi
-# from collections import Iterable 
+from collections import Iterable 
 # from time import gmtime, strftime 
 
 
 # # data 
-# import pandas as pd 
+import pandas as pd 
 # import numpy as np 
 # import matplotlib.pyplot as plt
 # from mpl_finance import candlestick_ohlc
@@ -72,4 +72,16 @@ def master_clean(path) :
     graph_clean(path)
 
 
+def save_temp_df(df, params, path) : 
+    
+    assert isinstance(df, pd.DataFrame)
+    assert isinstance(params, Iterable)
 
+    d1 = str(df.date.iloc[0]).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
+    d2 = str(df.date.iloc[-1]).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
+    _day = df.date.iloc[-1].day_name().lower()
+    str_list = params
+    str_list += [_day, d1, d2]
+    filename = ["_" + str(i) for i in str_list] 
+    filename = "temp" + "".join(filename) + ".csv"
+    df.to_csv(path+filename, index=False)
