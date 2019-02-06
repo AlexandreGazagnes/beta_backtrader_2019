@@ -14,7 +14,7 @@ from itertools import product
 
 class Results() : 
     
-    def __init__(self, axis_struct, data_label, start_stop, strategy_name): 
+    def __init__(self, axis_struct, data_label, start_stop, strategy_name="None"): 
 
         assert isinstance(axis_struct,  Iterable)
         for i,j in axis_struct : 
@@ -33,8 +33,11 @@ class Results() :
 
         assert len(axis_struct) + 1 == (len(shape))
         self.axis_struct = axis_struct
+        self.axis_names = [(nb, val) for nb, val in enumerate([i for i,j in axis_struct])]
+        self.axis_val = [(nb, val) for nb, val in enumerate([j for i,j in axis_struct])]
         self.data_label = data_label
         self.start_stop = start_stop
+        self.strategy_name = strategy_name
 
 
     def __repr__(self) : 

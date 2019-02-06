@@ -79,11 +79,15 @@ def save_temp_df(df, params, path) :
     assert isinstance(df, pd.DataFrame)
     assert isinstance(params, Iterable)
 
-    d1 = str(df.date.iloc[0]).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
-    d2 = str(df.date.iloc[-1]).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
+    d1 = str_timestamp(df.date.iloc[0])
+    d2 = str_timestamp(df.date.iloc[-1])
     _day = df.date.iloc[-1].day_name().lower()
     str_list = params
     str_list += [_day, d1, d2]
     filename = ["_" + str(i) for i in str_list] 
     filename = "temp" + "".join(filename) + ".csv"
     df.to_csv(path+filename, index=False)
+
+
+def str_timestamp(t) : 
+    return str(t).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")

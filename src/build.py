@@ -141,15 +141,3 @@ def init_dataframe(filepath, time_sel, delta_max="5 days", enhance_date=True) :
     return df
 
 
-def set_ref_prices(df) : 
-
-    auth = ["open", "close", "average", "close_open"]
-    return [i for i in df.columns if i in auth]
-
-
-def set_ref_days(df) : 
-    
-    if not "week_day" in df.columns : 
-        raise ValueError("no wek_day in columns")
-
-    return sorted(df.week_day.unique()) 

@@ -51,7 +51,7 @@ from strats         import *
 
 time_sel        = TimeSel(False, "2015-01-13", "2019-01-04") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
 
-random_sel      = RandomSel(False, 1, 400, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
+random_sel      = RandomSel(True, 10, 400, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
 
 trading_params  = TradingParams( "trading", False, True, False, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
                                 99999, 
@@ -74,21 +74,16 @@ t0 = time()
 
 
 #   init and prepare dataframe
-DF          = init_dataframe(paths.data_file, time_sel, delta_max="8 days", enhance_date=True)
-REF_PRICES  = set_ref_prices(DF)
-REF_DAYS    = set_ref_days(DF)
-RAND_PERIODS= set_rand_periods(random_sel) 
-LAST_PRICES = list(range(1, 6))
-
-
-# save primary DF
+DF              = init_dataframe(paths.data_file, time_sel, delta_max="8 days", enhance_date=True)
 pk_save(DF, "DF", paths.temp_path)
-del DF
 
 
-# init graphs options
-# if output.graphs : fig, axs = plt.subplots(random_sel.nb, sharex=True)
-# if not isinstance(axs, Iterable) : axs = [axs,] 
+# init our LOOPER
+REF_PRICES      = set_ref_prices(DF)
+REF_DAYS        = set_ref_days(DF)
+RAND_PERIODS    = set_rand_periods(DF, random_sel) 
+LAST_PRICES     = list(range(1, 6))
+LOOPER = [[(j,k) for j,k in enumerate(i)] for i in [RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES]]
 
 
 # init result handler
@@ -97,12 +92,13 @@ axis_struct     = (     ("rand_periods", RAND_PERIODS),
                         ("ref_days", REF_DAYS), 
                         ("ref_prices", REF_PRICES)      )
 data_label      = ("trd", "mkt")
-start_stop      = (str(DF.iloc[0, "date"]), str(DF.iloc[-1, "date"]))
+start_stop      = (str(DF.iloc[0]["date"]), str(DF.iloc[-1]["date"]))
 r = Results(axis_struct, data_label, start_stop)
 
 
-# init our LOOPER
-LOOPER = [[(j,k) for j,k in enumerate(i)] for i in [RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES]]
+# init graphs options
+# if output.graphs : fig, axs = plt.subplots(random_sel.nb, sharex=True)
+# if not isinstance(axs, Iterable) : axs = [axs,] 
 
 # -----------------------------------------------------------
 # init stop
@@ -118,15 +114,22 @@ for period, param, day, ref_price in product(*LOOPER) :
     i, param        = param
     j, day          = day
     k, ref_price    = ref_price
-
+    print(str_timestamp(period[0]), str_timestamp(period[1]), param, day, ref_price)
 
     # update df
-    df      = random_dataframe(df.copy(), period) 
-    df      = week_day_dataframe(df.copy(), day)
-    df      = strategy_dataframe(df.copy(), ref_price, param)            
+    df      = DF.copy()
+    df      = random_dataframe(df, period) 
+    df      = week_day_dataframe(df, day)
+    df      = strategy_dataframe(df, ref_price, param)            
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     # update trading_params
     trading_params.update_before_trading(df, ref_price)
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     
     # trading
@@ -134,16 +137,19 @@ for period, param, day, ref_price in product(*LOOPER) :
 
 
     # save temp_df if needed
-    if output.dataframes : save_temp_df(df, [period, param, day, ref_price], paths.temp_path)
+    if output.dataframes : save_temp_df(df, [param, ref_price], paths.temp_path)
+
 
     # compute gains and upadate results
     rs = compute_trading_results(df, ref_price)
     r.m[h, i, j, k] = rs
 
+
     # show results
     if output.prints :
         print(period, param, day, ref_price)
         print(f"\t{rs}\n")
+
 
     # grah results:
     #     axs[random_test].plot(df.date, df["total"])
