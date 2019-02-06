@@ -18,7 +18,6 @@
 #       IMPORT
 ####################################################################
 
-
 # built-in
 import os, sys, datetime, time, pickle
 from collections import Iterable 
@@ -34,13 +33,14 @@ sns.set()
 
 
 # src
-from src.misc import *
-from src.build import * 
-from src.transfo import *
-from src.params import * 
-from src.trading import *
-from src.results import * 
-from strats import *
+from src.misc       import *
+from src.build      import * 
+from src.transfo    import *
+from src.params     import * 
+from src.trading    import *
+from src.results    import * 
+from strats         import *
+
 
 
 ####################################################################
@@ -49,22 +49,21 @@ from strats import *
 
 # paths.data_file = '/home/alex/beta_backtrader_2019/data/eth_usd_ethermine_ok.csv' # paths = Path(C.PATH, C.FILE)
 
-time_sel = TimeSel(False, "2015-01-13", "2019-01-04") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
+time_sel        = TimeSel(False, "2015-01-13", "2019-01-04") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
 
-random_sel = RandomSel(False, 1, 400, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
+random_sel      = RandomSel(False, 1, 400, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
 
-trading_params = TradingParams( "trading", False, True, False, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
+trading_params  = TradingParams( "trading", False, True, False, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
                                 99999, 
                                 1.3, 1.0, "%",
                                 1.3, 1.0, "%")
 
-
 strategy_dataframe = last_prices.strategy
 
+
+
 ####################################################################
-
 #   MAIN
-
 ####################################################################
  
 t0 = time()
@@ -76,7 +75,7 @@ t0 = time()
 DF          = init_dataframe(paths.data_file, time_sel, delta_max="8 days", enhance_date=True)
 REF_PRICES  = set_ref_prices(DF)
 REF_DAYS    = set_ref_days(DF)
-RAND_PERIODS= set_random_dates(random_sel) 
+RAND_PERIODS= set_rand_periods(random_sel) 
 LAST_PRICES = list(range(1, 6))
 
 
@@ -93,62 +92,65 @@ del DF
 
 # ------------------------------------------------------------
 
-# main loop : for various random timestamp
-for random_nb in range(random_sel.nb) : 
+# # main loop : for various random timestamp
+# for random_nb in range(random_sel.nb) : 
 
-    # df ops
-    DF = pk_load("DF", paths.temp_path)
-    # choose a random timestamp if needed
-    if random_sel.val :   random_df = randomize_dataframe(DF, random_sel)
-    else :                random_df = DF.copy()
-    del DF
+# # df ops
+# DF = pk_load("DF", paths.temp_path)
+# # choose a random timestamp if needed
+# if random_sel.val :   random_df = randomize_dataframe(DF, random_sel)
+# else :                random_df = DF.copy()
+# del DF
 
-    # results
-    axis_struct = (("rand_periods", RAND_PERIODS) "last_prices", LAST_PRICES), ("ref_days", REF_DAYS), ("ref_prices", REF_PRICES)) 
-    data_label = ("trd", "mkt")
-    r = Results(axis_struct, data_label, ("start", "stop"))
+# results
+axis_struct     = (     ("rand_periods", RAND_PERIODS),
+                        ("last_prices", LAST_PRICES), 
+                        ("ref_days", REF_DAYS), 
+                        ("ref_prices", REF_PRICES)      )
 
-    # main loop
-    LOOPER = [[(j,k) for j,k in enumerate(i)] for i in [RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES]]
-    for period, param, day, ref_price in product(*LOOPER) : 
+data_label      = ("trd", "mkt")
 
-        # unpack enumerate results
-        h, period = period
-        i, param = param
-        j, day = day
-        k, ref_price = ref_price
-        print(param,day,ref_price)
+start_stop      = (str(DF.iloc[0, "date"]), str(DF.iloc[-1, "date"]))
 
-        # update df
-        df      = week_day_dataframe(random_df.copy(), day)
-        df      = strategy_dataframe(df, ref_price, param)            
+r = Results(axis_struct, data_label, start_stop)
 
-        # update trading_params
-        trading_params.price.ref = ref_price
-        trading_params.update_before_trading(df)
-        
-        # trading
-        df, trading_params = trading_room(df, trading_params, broker)
+# main loop
+LOOPER = [[(j,k) for j,k in enumerate(i)] for i in [RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES]]
+for period, param, day, ref_price in product(*LOOPER) : 
 
-        # save temp_df if needed
-        if output.dataframes : 
-            save_temp_df(df, [param, day, ref_price], paths.temp_path)
+    # unpack enumerate results
+    h, period       = period
+    i, param        = param
+    j, day          = day
+    k, ref_price    = ref_price
 
 
-        # compute gains
+    # update df
+    df      = random_dataframe(df.copy(), period) 
+    df      = week_day_dataframe(df.copy(), day)
+    df      = strategy_dataframe(df.copy(), ref_price, param)            
 
-        rs = compute_trading_results(df, ref_price)
-        print(f"\t{rs}\n")
-        r.m[i, j, k] = rs
+    # update trading_params
+    trading_params.update_before_trading(df, ref_price)
+    
+    # trading
+    df, trading_params = trading_room(df, trading_params, broker)
 
-    random_results[random_nb] = None
+    # save temp_df if needed
+    if output.dataframes : save_temp_df(df, [period, param, day, ref_price], paths.temp_path)
+
+    # compute gains
+    rs = compute_trading_results(df, ref_price)
+
+
+    # update results
+    r.m[i, j, k] = rs
 
     # # show results
-    # if output.prints :
-    #     print("\n\n")
-    #     print(random_nb)
-    #     print(str(df.date.iloc[0]) + " --> " + str(df.date.iloc[-1]))
-    #     print(day_results)
+    if output.prints :
+        print(period, param, day, ref_price)
+        print(f"\t{rs}\n")
+
        
 
 # time
