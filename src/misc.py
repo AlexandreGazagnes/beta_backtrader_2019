@@ -91,3 +91,13 @@ def save_temp_df(df, params, path) :
 
 def str_timestamp(t) : 
     return str(t).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
+
+def int_timestamp(t) : 
+    return int(str(t).replace("-", "").replace(":","").replace(" ", "").replace("000000", ""))
+
+def float_period(t) : 
+    t0 = str(t[0]).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
+    t1 = str(t[1]).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
+    return float(t0+"."+t1)
+
+

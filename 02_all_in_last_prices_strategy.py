@@ -83,14 +83,10 @@ REF_PRICES      = set_ref_prices(DF)
 REF_DAYS        = set_ref_days(DF)
 RAND_PERIODS    = set_rand_periods(DF, random_sel) 
 LAST_PRICES     = list(range(1, 6))
-LOOPER = [[(j,k) for j,k in enumerate(i)] for i in [RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES]]
-
+LOOPER          = [i for i in product(RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES)]
 
 # init result handler
-axis_struct     = (     ("rand_periods", RAND_PERIODS),
-                        ("last_prices", LAST_PRICES), 
-                        ("ref_days", REF_DAYS), 
-                        ("ref_prices", REF_PRICES)      )
+axis_struct     = ("rand_periods", "last_prices", "ref_days", "ref_prices")
 data_label      = ("trd", "mkt")
 start_stop      = (str(DF.iloc[0]["date"]), str(DF.iloc[-1]["date"]))
 r = Results(axis_struct, data_label, start_stop)
@@ -107,13 +103,13 @@ r = Results(axis_struct, data_label, start_stop)
 # loop strat
 # -----------------------------------------------------------
 
-for period, param, day, ref_price in product(*LOOPER) : 
+for period, param, day, ref_price in LOOPER : 
 
     # unpack enumerate results
-    h, period       = period
-    i, param        = param
-    j, day          = day
-    k, ref_price    = ref_price
+    # h, period       = period
+    # i, param        = param
+    # j, day          = day
+    # k, ref_price    = ref_price
     # print(str_timestamp(period[0]), str_timestamp(period[1]), param, day, ref_price)
 
     # update df
@@ -134,12 +130,14 @@ for period, param, day, ref_price in product(*LOOPER) :
 
     # compute gains and upadate results
     rs = compute_trading_results(df, ref_price)
-    r.m[h, i, j, k] = rs
+
+    ser = (float_period(period), param, day, ref_price, rs[0], rs[1])
+    r.m.append(ser)
 
 
     # show results
     if output.prints :
-        print(str_timestamp(period[0]), str_timestamp(period[1]), param, day, ref_price, rs)
+        print(str(float_period(period)), param, day, ref_price, rs)
         # print(f"\t{rs}\n")
 
 

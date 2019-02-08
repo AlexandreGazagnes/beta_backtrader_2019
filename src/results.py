@@ -4,6 +4,7 @@
 
 
 import numpy as np
+import pandas as pd
 from collections import Iterable
 from itertools import product
 
@@ -17,9 +18,8 @@ class Results() :
     def __init__(self, axis_struct, data_label, start_stop, strategy_name="None"): 
 
         assert isinstance(axis_struct,  Iterable)
-        for i,j in axis_struct : 
+        for i in axis_struct : 
             assert isinstance(i, str)
-            assert isinstance(j, Iterable)
             
         assert isinstance(data_label, Iterable)
         for i in data_label : 
@@ -27,21 +27,15 @@ class Results() :
 
         assert isinstance(start_stop, Iterable)
 
-        shape = [len(j) for i,j in axis_struct]
-        shape.append(len(data_label))
-        self.m = np.zeros(shape)
+        self.m = list()
 
-        assert len(axis_struct) + 1 == (len(shape))
-        self.axis_struct = axis_struct
-        self.axis_names = [(nb, val) for nb, val in enumerate([i for i,j in axis_struct])]
-        self.axis_val = [(nb, val) for nb, val in enumerate([j for i,j in axis_struct])]
-        self.data_label = data_label
+        self.axis_struct = axis_struct + data_label
         self.start_stop = start_stop
         self.strategy_name = strategy_name
 
 
     def __repr__(self) : 
-        return f"{self.axis_struct}\n{self.data_label}\n{self.start_stop}\n{self.m.shape}"
+        return f"{self.axis_struct}\n{self.start_stop}\n"
 
 
     def reduce_dims_if_possible(self) : 
