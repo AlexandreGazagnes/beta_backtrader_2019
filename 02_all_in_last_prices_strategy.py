@@ -49,9 +49,9 @@ from strats         import *
 
 # paths.data_file = '/home/alex/beta_backtrader_2019/data/eth_usd_ethermine_ok.csv' # paths = Path(C.PATH, C.FILE)
 
-time_sel        = TimeSel(False, "2015-01-13", "2019-01-04") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
+time_sel        = TimeSel(True, "1999-01-13", "2022-11-04") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
 
-random_sel      = RandomSel(True, 10, 400, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
+random_sel      = RandomSel(True, 5, 400, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
 
 trading_params  = TradingParams( "trading", False, True, False, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
                                 99999, 
@@ -74,7 +74,7 @@ t0 = time()
 
 
 #   init and prepare dataframe
-DF              = init_dataframe(paths.data_file, time_sel, delta_max="8 days", enhance_date=True)
+DF              = init_dataframe(paths.data_file, time_sel, enhance_date=True)
 pk_save(DF, "DF", paths.temp_path)
 
 
@@ -114,7 +114,7 @@ for period, param, day, ref_price in product(*LOOPER) :
     i, param        = param
     j, day          = day
     k, ref_price    = ref_price
-    print(str_timestamp(period[0]), str_timestamp(period[1]), param, day, ref_price)
+    # print(str_timestamp(period[0]), str_timestamp(period[1]), param, day, ref_price)
 
     # update df
     df      = DF.copy()
@@ -122,17 +122,9 @@ for period, param, day, ref_price in product(*LOOPER) :
     df      = week_day_dataframe(df, day)
     df      = strategy_dataframe(df, ref_price, param)            
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     # update trading_params
     trading_params.update_before_trading(df, ref_price)
-
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    
-    # trading
     df, trading_params = trading_room(df, trading_params, broker)
 
 
@@ -147,8 +139,8 @@ for period, param, day, ref_price in product(*LOOPER) :
 
     # show results
     if output.prints :
-        print(period, param, day, ref_price)
-        print(f"\t{rs}\n")
+        print(str_timestamp(period[0]), str_timestamp(period[1]), param, day, ref_price, rs)
+        # print(f"\t{rs}\n")
 
 
     # grah results:
@@ -170,18 +162,18 @@ timer = round(time() - t0,4)
 print(str(timer))
 
 
-# graph last df 
-fig, axs = plt.subplots(4, 1, sharex= True)
-_df = df.loc[:, ["date", "open", "total", "long_total", "short_total"]]               
-_df.columns = ["date", "price", "portfolio", "long_total", "short_total"]                                                         
+# # graph last df 
+# fig, axs = plt.subplots(4, 1, sharex= True)
+# _df = df.loc[:, ["date", "open", "total", "long_total", "short_total"]]               
+# _df.columns = ["date", "price", "portfolio", "long_total", "short_total"]                                                         
 
-for i, txt in enumerate(["price", "portfolio", "long_total", "short_total"]) : 
-    axs[i].plot("date", txt, data=_df) 
-    axs[i].legend(loc="upper left")
+# for i, txt in enumerate(["price", "portfolio", "long_total", "short_total"]) : 
+#     axs[i].plot("date", txt, data=_df) 
+#     axs[i].legend(loc="upper left")
 
 
-# clean temp if needed
-s = input("end, check/moove temps files\n's' to save\nother to delete\n\n")
-if s != "s" :  
-    master_clean(paths.temp_path)
+# # clean temp if needed
+# s = input("end, check/moove temps files\n's' to save\nother to delete\n\n")
+# if s != "s" :  
+#     master_clean(paths.temp_path)
 

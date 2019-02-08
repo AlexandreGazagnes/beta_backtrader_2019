@@ -12,7 +12,7 @@ import datetime
 # dataFrame init and building functions
 # -----------------------------------------------------------
 
-def init_dataframe(filepath, time_sel, delta_max="5 days", enhance_date=True) : 
+def init_dataframe(filepath, time_sel, enhance_date=True) : 
 
     # init df
     df = pd.read_csv(filepath)
@@ -56,7 +56,7 @@ def init_dataframe(filepath, time_sel, delta_max="5 days", enhance_date=True) :
     df["delta"] = df.date - df.date.shift()
     df = df.loc[df.delta.isna() == False, :]
     
-    idxs = df.loc[df.delta > delta_max, :].index
+    idxs = df.loc[df.delta > time_sel.delta_max, :].index
     if len(idxs) : 
         _idxs = np.array([(i-1, i, i+1) for i in idxs]).flatten()
         _idxs = pd.Series(_idxs).sort_values().unique()
@@ -97,27 +97,26 @@ def init_dataframe(filepath, time_sel, delta_max="5 days", enhance_date=True) :
 
     # time selection
     if time_sel.val : 
-        
-        start = time_sel.start
-        stop =  time_sel.stop
+        _start  = pd.to_datetime(time_sel.start)
+        _stop   = pd.to_datetime(time_sel.stop)
 
-        while True : # look random for a good start point
-            rand = np.random.choice([-2,-1, 0, 1, 2])
-            _start = start[:-1] + str(rand + int(start[-1]))
-            _start = pd.to_datetime(_start) 
-            _start = df.loc[df.date == _start, :].index
-            if len(_start) == 1 :
-                break  
+        if _start < df.date.iloc[0]  : _start = df.date.iloc[0]
+        if _stop  > df.date.iloc[-1] : _stop  = df.date.iloc[-1]
 
-        while True : # look random for a good stop point
-            rand = np.random.choice([-2,-1, 0, 1, 2])
-            _stop = stop[:-1] + str(rand + int(stop[-1]))
-            _stop = pd.to_datetime(_stop) 
-            _stop = df.loc[df.date == _stop, :].index
-            if len(_stop) == 1 :
-                break  
+        while True:
+            if len(df.loc[df.date == _start, : ].index) == 1 : 
+                _start_idx = df.loc[df.date == _start].index[0]
+                break
+            _start += pd.Timedelta(1, unit="D")
 
-        df = df.loc[_start[0] : _stop[0], :].copy()
+        while True:
+            if len(df.loc[df.date == _stop, : ].index) == 1: 
+                _stop_idx  = df.loc[df.date == _stop ].index[0] 
+                break
+            _stop -= pd.Timedelta(1, unit="D")
+
+
+        df = df.iloc[_start_idx : _stop_idx, :]
         df.index = list(range(len(df.index)))   
 
 

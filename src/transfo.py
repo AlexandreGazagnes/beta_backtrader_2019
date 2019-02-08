@@ -6,12 +6,12 @@
 # # built-in
 # import os, sys, datetime, time, pickle
 # from math import pi
-# from collections import Iterable 
+from collections import Iterable 
 # from time import gmtime, strftime 
 
 
 # # data 
-# import pandas as pd 
+import pandas as pd 
 import numpy as np 
 # import matplotlib.pyplot as plt
 # from mpl_finance import candlestick_ohlc
@@ -76,7 +76,7 @@ def random_dataframe(df, start_stop) :
     idx_start   = df.loc[df.date == start, :].index[0]
     idx_stop    = df.loc[df.date == stop, :].index[0]
 
-    df = df.iloc[start : stop, :]
+    df = df.iloc[idx_start : idx_stop, :]
     df.index = list(range(len(df.index)))
 
     return df

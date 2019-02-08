@@ -8,7 +8,7 @@
 
 PATH                        = "/home/alex/beta_backtrader_2019/"
 FILE                        = "dowjones_usd_abcbourse_ok.csv"
-FILE                      	= "eth_usd_ethermine_ok.csv"
+# FILE                      	= "eth_usd_ethermine_ok.csv"
 
 
 
@@ -29,8 +29,8 @@ ROLL_OVER                   = 0.06 / 100
 # ------------------------------------------------------------
 
 TIME_SELECT                 = True
-TIME_START                  = "2007-10-03"  # english format
-TIME_STOP                   = "2019-01-03"
+TIME_START                  = "2017-10-03"  # english format
+TIME_STOP                   = "2018-11-04"
 FORCE_WORKDAYS                    = False
 # for real market (not crypto) delete saturdays and sundays tickers, type bool
            

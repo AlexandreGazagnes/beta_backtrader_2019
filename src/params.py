@@ -66,7 +66,7 @@ class Broker() :
   
 class TimeSel() : 
     
-    def __init__(self, val, start=None, stop=None, force_workdays=False) : 
+    def __init__(self, val, start=None, stop=None, delta_max="8 days", force_workdays=False, ) : 
 
         # check args
         assert isinstance(val, bool)
@@ -75,9 +75,9 @@ class TimeSel() :
         if val : 
             for d in [start, stop] : 
                 d = [int(d) for d in d.split("-")]
-                assert ((d[0] >= 1980)  and (d[0] <=2019))
-                assert ((d[1] >= 0)     and (d[1] <=12))
-                assert ((d[2] >= 0)     and (d[2] <=31))
+                assert ((d[0] >= 1980)  and (d[0] <=2025))
+                assert ((d[1] >= 1)     and (d[1] <=12))
+                assert ((d[2] >= 1)     and (d[2] <=31))
 
         assert pd.to_datetime(stop) > pd.to_datetime(start)
 
@@ -87,11 +87,13 @@ class TimeSel() :
             self.start          = start
             self.stop           = stop
             self.force_workdays = force_workdays
+            self.delta_max      = delta_max
         
         else : 
             self.start          = None
             self.stop           = None
             self.force_workdays = False
+            self.delta_max      = delta_max
 
     def __repr__(self) : 
 
@@ -224,7 +226,7 @@ class TradingParams() :
         self.version     = version.lower()
    
 
-    def update_before_trading(self, df) : 
+    def update_before_trading(self, df, ref_price) : 
 
         # agrs check
         assert isinstance(df, pd.DataFrame)
@@ -233,8 +235,10 @@ class TradingParams() :
         self.long.open_trade        = False        
         self.long.last_buy          = -1
 
-        self.short.open_trade        = False        
-        self.short.last_buy          = -1
+        self.short.open_trade       = False        
+        self.short.last_buy         = -1
+
+        self.price.ref              = ref_price
         
         # for average and close_open you have to buy at close
         if  self.price.ref in ["average", "close_open"] :   self.price.mkt = "close"
