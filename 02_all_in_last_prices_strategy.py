@@ -20,7 +20,8 @@
 
 # built-in
 import os, sys, datetime, time, pickle
-from collections import Iterable 
+from collections import Iterable
+from copy import copy
 from time import gmtime, strftime, time
 from itertools import product
 
@@ -61,6 +62,8 @@ trading_params  = TradingParams( "trading", False, True, False, # trading_params
 strategy_dataframe = last_prices.strategy
 
 
+CORES = 4
+
 
 ####################################################################
 #   MAIN
@@ -100,51 +103,55 @@ r = Results(axis_struct, data_label, start_stop)
 # init stop
 
 
-# loop strat
-# -----------------------------------------------------------
-
-for period, param, day, ref_price in LOOPER : 
-
-    # unpack enumerate results
-    # h, period       = period
-    # i, param        = param
-    # j, day          = day
-    # k, ref_price    = ref_price
-    # print(str_timestamp(period[0]), str_timestamp(period[1]), param, day, ref_price)
-
-    # update df
-    df      = DF.copy()
-    df      = random_dataframe(df, period) 
-    df      = week_day_dataframe(df, day)
-    df      = strategy_dataframe(df, ref_price, param)            
 
 
-    # update trading_params
-    trading_params.update_before_trading(df, ref_price)
-    df, trading_params = trading_room(df, trading_params, broker)
+def trading(LOOPER) :
+
+    global trading_params
+    trd_params = copy(trading_params)
+
+    # loop strat
+    # -----------------------------------------------------------
+
+    for period, param, day, ref_price in LOOPER : 
+
+        # update df
+        df      = DF.copy()
+        df      = random_dataframe(df, period) 
+        df      = week_day_dataframe(df, day)
+        df      = strategy_dataframe(df, ref_price, param)            
 
 
-    # save temp_df if needed
-    if output.dataframes : save_temp_df(df, [param, ref_price], paths.temp_path)
+        # update trading_params and trading
+        trd_params.update_before_trading(df, ref_price)
+        df, trd_params = trading_room(df, trd_params, broker)
 
 
-    # compute gains and upadate results
-    rs = compute_trading_results(df, ref_price)
-
-    ser = (float_period(period), param, day, ref_price, rs[0], rs[1])
-    r.m.append(ser)
+        # save temp_df if needed
+        # if output.dataframes : save_temp_df(df, [param, ref_price], paths.temp_path)
 
 
-    # show results
-    if output.prints :
-        print(str(float_period(period)), param, day, ref_price, rs)
-        # print(f"\t{rs}\n")
+        # compute gains and upadate results
+        rs = compute_trading_results(df, ref_price)
+        ser = (float_period(period), param, day, ref_price, rs[0], rs[1])
+        # r.m.append(ser)
+
+        # save results
+        filename = "_".join([str(i) for i in (float_period(period), param, day, ref_price)])
+        print(filename)
+        pk_save(ser, filename, paths.results_path)
 
 
-    # grah results:
-    #     axs[random_test].plot(df.date, df["total"])
-    #     axs[random_test].plot(df.date, df[ref_price])
-    #     fig.savefig(PATH + "fig")
+        # show results
+        if output.prints :
+            print(str(float_period(period)), param, day, ref_price, rs)
+            # print(f"\t{rs}\n")
+
+
+        # grah results:
+        #     axs[random_test].plot(df.date, df["total"])
+        #     axs[random_test].plot(df.date, df[ref_price])
+        #     fig.savefig(PATH + "fig")
 
 
 # -----------------------------------------------------------
@@ -158,6 +165,31 @@ for period, param, day, ref_price in LOOPER :
 # time it 
 timer = round(time() - t0,4)
 print(str(timer))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # # graph last df 

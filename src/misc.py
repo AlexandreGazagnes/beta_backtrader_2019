@@ -101,3 +101,15 @@ def float_period(t) :
     return float(t0+"."+t1)
 
 
+
+
+def chunks(l, n):
+
+    from math import ceil
+
+    n = len(l)/n
+    n = ceil(n)
+    
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
