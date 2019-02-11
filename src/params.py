@@ -190,11 +190,8 @@ class Bank() :
         if dual : 
             self.long_init  = round(init/2, 4)
             self.short_init = round(init/2, 4)
-            self.init       = 0
 
         else : 
-            self.long_init  = 0
-            self.short_init = 0
             self.init       = init
     
     def __repr__(self) : 
@@ -258,26 +255,27 @@ class Price() :
 
 class Position() : 
 
-    def __init__(self, enable, bank_init=None, size_val=None, size_type=None) : 
+    def __init__(self, enable, size_val=None, size_type=None) : 
 
         #args check       
         assert isinstance(enable, bool)  
 
-        if enable : 
-            assert isinstance(bank_init, int) or  isinstance(bank_init, float)
-            assert ((bank_init >= 0) and (100000 >= bank_init))   
+        if enable :  
             assert isinstance(size_val, int)  or  isinstance(size_val, float)
-            assert ((size_val >= 0) and (100000 >= size_val)) 
             assert isinstance(size_type, str)
             assert size_type in ["val", "%"]
+            if size_type == "val" : assert ((size_val >= 1) and (100 >= size_val))
+            else  :                 assert ((size_val >0.0) and (1.0 >= size_val))
 
+        else : 
+            size_val    = 0.0
+            size_type   = "%"
 
         self.enable         = enable
-        self.bank_init      = bank_init
         self.size_val       = size_val
         self.size_type      = size_type
         self._open_trade    = False
-        self._last_buy      = -1.0 
+        self._last_buy      = 0.0
 
     def __get_open_trade(self) : 
         return self._open_trade
@@ -291,15 +289,13 @@ class Position() :
 
     def __set_last_buy(self, val) : 
         assert isinstance(val, float)
-        assert ((val > 0.0) and (100000.0 > val)) 
+        assert ((val >= 0.0) and (100000.0 >= val)) 
         self._last_buy = val
-
 
     open_trade  = property(__get_open_trade, __set_open_trade)
     last_buy    = property(__get_last_buy, __set_last_buy)
 
     def __repr__(self) : 
-
         return str(self.__dict__).replace(",", ";\n").replace(":", "=")
 
 
@@ -307,14 +303,14 @@ class TradingParams() :
 
     def __init__(   self, version, enable_multi_trade, multi_trade_max, enable_long, enable_short, 
                     dual_bank, bank_init, 
-                    long_size_val=None,   long_size_type=None,
-                    short_size_val=None, short_size_type=None): 
+                    long_size_val=1,   long_size_type="%",
+                    short_size_val=1, short_size_type="%"): 
 
 
         self.bank        = Bank(dual_bank, bank_init) 
         self.multi_trade = MultiTrade(version, enable_multi_trade, multi_trade_max)
-        self.long        = Position(enable_long, self.bank.long_init, long_size_val, long_size_type)
-        self.short       = Position(enable_short,self.bank.short_init, short_size_val, short_size_type)
+        self.long        = Position(enable_long, long_size_val, long_size_type)
+        self.short       = Position(enable_short,short_size_val, short_size_type)
         self.price       = Price()
         self.first       = True
 
@@ -327,33 +323,57 @@ class TradingParams() :
 
         self.first                  = True
         self.long.open_trade        = False        
-        self.long.last_buy          = -1
+        self.long.last_buy          = 0.0
 
         self.short.open_trade       = False        
-        self.short.last_buy         = -1
+        self.short.last_buy         = 0.0
 
         self.price.ref              = ref_price
         
         # for average and close_open you have to buy at close
-        if  self.price.ref in ["average", "clos_op"] :   self.price.mkt = "close"
-        elif self.price.ref in ["high", "low", ""] :            raise ValueError("invalid ref_price")
+        if  self.price.ref in ["average", "clos_op"] :      self.price.mkt = "close"
+        elif self.price.ref in ["high", "low", ""] :        raise ValueError("invalid ref_price")
         else :                                              self.price.mkt = self.price.ref
 
         # update bank init as required
-        if (self.version == "trading") and self.long.enable and (self.long.bank_init<=0.0): 
-            self.long.bank_init = df.loc[0, self.price.mkt ]
 
-        if (self.version == "trading") and self.short.enable and (self.short.bank_init<=0.0): 
-            self.short.bank_init = df.loc[0, self.price.mkt ]
+        if self.bank.dual : 
 
-        if (self.version == "invest") and self.long.enable : 
-            if self.long.size_type == "val" : 
-                self.long.bank_init = self.long.size_val * len(df)
-            else : 
-                raise ValueError("Invest + Long + size_type % not compatible")
+            if (self.multi_trade.version == "trading") and self.long.enable and (self.bank.long_init<=0.0): 
+                self.bank.long_init = df.loc[0, self.price.mkt ]
 
-        if (self.version == "invest") and self.short.enable : 
-            raise ValueError("Invest + shortnot avialable")
+            if (self.multi_trade.version == "trading") and self.short.enable and (self.bank.short_init<=0.0): 
+                self.bank.short_init = df.loc[0, self.price.mkt ]
+
+            if (self.multi_trade.version == "invest") and self.long.enable : 
+                if self.long.size_type == "val" : 
+                    self.bank.long_init = self.long.size_val * len(df)
+                else : 
+                    raise ValueError("Invest + Long + size_type % not compatible")
+
+            if not self.long.enable : 
+                self.bank.long_init = 0.0
+
+            if not self.short.enable : 
+                self.bank.short_init = 0.0
+
+        else : 
+
+            if (self.multi_trade.version == "trading") and self.bank.init<=0.0: 
+                self.bank.init   = df.loc[0, self.price.mkt ]
+
+            if (self.multi_trade.version == "invest") and self.long.enable : 
+                if self.long.size_type == "val" : 
+                    self.bank.init = self.long.size_val * len(df)
+                else : 
+                    raise ValueError("Invest + Long + size_type % not compatible")
+
+        if (self.multi_trade.version == "invest") and not self.long.enable : 
+                raise ValueError("please enable long for invest")
+
+        if (self.multi_trade.version == "invest") and self.short.enable : 
+            raise ValueError("Invest + short not avialable")
+
 
     def __repr__(self) : 
 
@@ -372,8 +392,9 @@ class Consts() :
 
 
 
+# if package and not main
 
-if not __name__ == '__main__':
+if __name__ != '__main__':
 
     C = Consts( ENABLE_MULTI_PROCESSING=ENABLE_MULTI_PROCESSING, NB_CORES=NB_CORES,
                 PATH=PATH,FILE=FILE, 
@@ -415,9 +436,8 @@ if not __name__ == '__main__':
     output = Output(C.GRAPHS, C.TEMP_FILES, C.PRINT_RESULTS, paths.temp_path)
 
     # tradings params
-    trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, 
+    trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.MULTI_TRADE_MAX, C.ENABLE_LONG, C.ENABLE_SHORT, 
                                     C.DUAL_BANK, C.BANK_INIT,
-                                    C.MULTI_TRADE_MAX, 
                                     C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE,
                                     C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
 

@@ -49,14 +49,15 @@ time_sel            = TimeSel(True, "2018-09-01", "2020-01-01") # time_sel = Tim
 
 random_sel          = RandomSel(False, 10, 360,  10*360, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.RANDOM_PERIOD_MAX, C.ENABLE_REVERSE)
 
-trading_params      = TradingParams("trading", False, True, True, True, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.DUAL_BANK, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
-                                    99999, 
-                                    1.3, 1.0, "%",
-                                    1.3, 1.0, "%")
+trading_params      = TradingParams(    "trading", False, 99999, True, False, 
+                                        False, 10, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.DUAL_BANK, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
+                                        1.0, "%",
+                                        1.0, "%")
 
 multi_process       = MultiProcessing(True, 6)    # multi_process = MultiProcessing(C.ENABLE_MULTI_PROCESSING, C.NB_CORES)
 
 strategy_dataframe  = last_prices.strategy
+
 
 
 ####################################################################
@@ -67,7 +68,7 @@ strategy_dataframe  = last_prices.strategy
 t0 = time()
 
 #   init and prepare dataframe
-DF                  = init_dataframe(paths.data_file, time_sel, enhance_date=True)
+DF                  = init_dataframe(paths.data_file, time_sel, trading_params)
 pk_save(DF, "DF", paths.temp_path_dfs)
 
 # init our LOOPER
@@ -81,7 +82,7 @@ LOOPER              = [i for i in product(RAND_PERIODS, LAST_PRICES, REF_DAYS , 
 axis_struct         = ("rand_periods", "last_prices", "ref_days", "ref_prices")
 data_label          = ("trd", "mkt", "time")
 start_stop          = (str(DF.iloc[0]["date"]), str(DF.iloc[-1]["date"]))
-r                   = Results(axis_struct, data_label, start_stop, paths.data_file)
+results             = Results(axis_struct, data_label, start_stop, paths.data_file)
 
 # init graphs options
 # if output.graphs : fig, axs = plt.subplots(random_sel.nb, sharex=True)
@@ -190,7 +191,7 @@ print("timer global : ", str(timer))
 #   RESULTS
 ####################################################################
 
-r.load(paths)
+results.load(paths)
 # print(r.m.groupby(by="last_prices").mean())
 
 

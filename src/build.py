@@ -12,7 +12,7 @@ import datetime
 # dataFrame init and building functions
 # -----------------------------------------------------------
 
-def init_dataframe(filepath, time_sel, enhance_date=True) : 
+def init_dataframe(filepath, time_sel, trd_params, enhance_date=True) : 
 
     # init df
     df = pd.read_csv(filepath)
@@ -121,21 +121,37 @@ def init_dataframe(filepath, time_sel, enhance_date=True) :
 
 
     # trading_dataframe
-    df["long_indicator"]        = 0
-    df["short_indicator"]       = 0
-    df["long_bank"]             = 0.0
-    df["long_quant"]            = 0.0
-    df["long_value"]            = 0.0
-    df["long_order_quant"]      = 0.0
-    df["long_order_value"]      = 0.0
-    df["short_bank"]            = 0.0
-    df["short_quant"]           = 0.0
-    df["short_value"]           = 0.0
-    df["short_order_quant"]     = 0.0
-    df["short_order_value"]     = 0.0
-    df["long_total"]            = 0.0 
-    df["short_total"]           = 0.0 
-    df["total"]                 = 0.0
+    if not trd_params.bank.dual : 
+        df["bank"]                  = 0.0
+
+    if trd_params.bank.dual and trd_params.long.enable : 
+        df["long_bank"]             = 0.0
+
+    if trd_params.long.enable : 
+        df["long_indicator"]        = 0
+        df["long_quant"]            = 0.0
+        df["long_value"]            = 0.0
+        df["long_order_quant"]      = 0.0
+        df["long_order_value"]      = 0.0
+
+    if trd_params.bank.dual and trd_params.short.enable :    
+        df["short_bank"]            = 0.0
+
+    if trd_params.short.enable : 
+        df["short_indicator"]       = 0
+        df["short_quant"]           = 0.0
+        df["short_value"]           = 0.0
+        df["short_order_quant"]     = 0.0
+        df["short_order_value"]     = 0.0
+
+    if trd_params.bank.dual and trd_params.long.enable : 
+        df["long_total"]            = 0.0 
+
+    if trd_params.bank.dual and trd_params.short.enable :    
+        df["short_total"]           = 0.0 
+
+    df["total"]                     = 0.0
+
 
     return df
 

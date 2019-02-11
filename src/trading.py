@@ -21,15 +21,23 @@ import pandas as pd
 # trading functions
 # -----------------------------------------------------------
 
-def do_nothing(df, i, _type, mkt_price) : 
+def do_nothing(df, i, _type, trd_params) : 
+
+    mkt_price = trd_params.price.mkt
 
     assert isinstance(_type, str)
     assert _type in ["long", "short"]
     assert isinstance(mkt_price, str)
     assert mkt_price in ["open", "close", "average", "clos_op"]
 
-    try :     
+    # bank
+    if trd_params.bank.dual : 
         df.loc[i, _type + "_bank"]          = df.loc[i-1, _type + "_bank"]
+    else : 
+        df.loc[i, _type + "bank"]          = df.loc[i-1, _type + "bank"]
+
+    # order
+    try :     
         df.loc[i, _type + "_quant"]         = df.loc[i-1, _type + "_quant"]
         df.loc[i, _type + "_order_quant"]   = 0.0
         df.loc[i, _type + "_value"]          = df.loc[i, _type + "_quant"] * df.loc[i, mkt_price]
@@ -177,53 +185,60 @@ def short_stop_loss(df, i, trd_pm, broker) :
     return df, trd_pm
 
 
-def trading_room(df, trading_params, broker) : 
+def trading_room(df, trd_params, broker) : 
 
     assert isinstance(df, pd.DataFrame)
 
     for _, i in enumerate(df.index) : # trading loop
 
-        if trading_params.first:  # first
-            df.loc[i, "long_bank"]  = trading_params.long.bank_init
-            df.loc[i, "short_bank"] = trading_params.short.bank_init
-            trading_params.first = False
+        if trd_params.first:  # first
+            if trd_params.bank.dual : 
+                df.loc[i, "long_bank"]  = trd_params.bank.long_init
+                df.loc[i, "short_bank"] = trd_params.bank.short_init
+            else : 
+                df.loc[i, "bank"]  = trd_params.bank.init
+
+            trd_params.first = False
             continue
 
         # do nothing
-        df = do_nothing(df, i, "long", trading_params.price.mkt)
-        df = do_nothing(df, i, "short", trading_params.price.mkt)
-
-
-        # long
-        if trading_params.long.enable : 
-            if df.loc[i, "long_indicator"] == 2 : # buy
-                df, trading_params = long_buy(df, i, trading_params, broker) 
-            elif df.loc[i, "long_indicator"] == -2 : # stop profit
-                df, trading_params = long_stop_profit(df, i, trading_params, broker)
-            elif df.loc[i, "long_indicator"] == -1 :  # stop loss
-                df, trading_params = long_stop_loss(df, i, trading_params, broker) 
-
-
-        # short
-        if trading_params.short.enable : 
-            if df.loc[i, "short_indicator"] == 2 : # buy
-                df, trading_params = short_buy(df, i, trading_params, broker) 
-            elif df.loc[i, "short_indicator"] == -2 : # stop profit
-                df, trading_params = short_stop_profit(df, i, trading_params, broker)
-            elif df.loc[i, "short_indicator"] == -1 :  # stop loss
-                df, trading_params = short_stop_loss(df, i, trading_params, broker) 
-
-
-    # last round force to sell ! 
-    i = df.index[-1]
-    df, trading_params = long_stop_profit(df, i, trading_params, broker)
-    df, trading_params = short_stop_profit(df, i, trading_params, broker)
-
-    df["long_total"] = df.long_bank + df.long_value
-    df["short_total"] = df.short_bank + df.short_value
-    df["total"] = df.long_total + df.short_total
+        if trd_params.long.enable : 
+            df = do_nothing(df, i, "long", trd_params)
     
-    return df, trading_params
+        if trd_params.short.enable
+            df = do_nothing(df, i, "short", trd_params)
+
+
+    #     # long
+    #     if trd_params.long.enable : 
+    #         if df.loc[i, "long_indicator"] == 2 : # buy
+    #             df, trd_params = long_buy(df, i, trd_params, broker) 
+    #         elif df.loc[i, "long_indicator"] == -2 : # stop profit
+    #             df, trd_params = long_stop_profit(df, i, trd_params, broker)
+    #         elif df.loc[i, "long_indicator"] == -1 :  # stop loss
+    #             df, trd_params = long_stop_loss(df, i, trd_params, broker) 
+
+
+    #     # short
+    #     if trd_params.short.enable : 
+    #         if df.loc[i, "short_indicator"] == 2 : # buy
+    #             df, trd_params = short_buy(df, i, trd_params, broker) 
+    #         elif df.loc[i, "short_indicator"] == -2 : # stop profit
+    #             df, trd_params = short_stop_profit(df, i, trd_params, broker)
+    #         elif df.loc[i, "short_indicator"] == -1 :  # stop loss
+    #             df, trd_params = short_stop_loss(df, i, trd_params, broker) 
+
+
+    # # last round force to sell ! 
+    # i = df.index[-1]
+    # df, trd_params = long_stop_profit(df, i, trd_params, broker)
+    # df, trd_params = short_stop_profit(df, i, trd_params, broker)
+
+    # df["long_total"] = df.long_bank + df.long_value
+    # df["short_total"] = df.short_bank + df.short_value
+    # df["total"] = df.long_total + df.short_total
+    
+    # return df, trd_params
 
 
 def compute_trading_results(df, ref_price) : 
