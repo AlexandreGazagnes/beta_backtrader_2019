@@ -177,18 +177,48 @@ class Output() :
         return str(self.__dict__).replace(",", ",\n")
 
 
+class Bank() : 
+
+    def __init__(self, dual=True, init=-1) : 
+
+        assert isinstance(dual, bool)
+        assert isinstance(init, int)
+        assert ((init>= -1) and (init <= 10000))
+
+        self.dual   = dual
+        
+        if dual : 
+            self.long_init  = round(init/2, 4)
+            self.short_init = round(init/2, 4)
+            self.init       = 0
+
+        else : 
+            self.long_init  = 0
+            self.short_init = 0
+            self.init       = init
+    
+    def __repr__(self) : 
+
+        return str(self.__dict__).replace(",", ";\n").replace(":", "=")
+
+
 class MultiTrade(): 
 
-    def __init__(self, enable, multi_trade_max=None) : 
+    def __init__(self, version, enable, multi_trade_max=999999) : 
 
         # args check         
+        assert isinstance(version, str)
+        assert (version.lower() in ["invest", "trading"])
+
         assert isinstance(enable, bool)
         if enable :   
             assert isinstance(multi_trade_max, int)  
-            assert ((multi_trade_max >= 1) and (99999 >= multi_trade_max))         
+            assert ((multi_trade_max >= 1) and (999999 >= multi_trade_max))         
 
-        self.enable = enable
-        self.multi_trade_max = multi_trade_max
+        self.version            = version.lower()
+        self.enable             = enable
+        self.multi_trade_max    = multi_trade_max
+
 
     def __repr__(self) : 
 
@@ -198,12 +228,32 @@ class MultiTrade():
 class Price() : 
 
     def __init__(self) : 
-        self.ref = ""
-        self.mkt = ""
+        self._ref = "open"
+        self._mkt = "open"
+
+    def __get_ref(self) : 
+        return self._ref
+
+    def __get_mkt(self) : 
+        return self._mkt
+
+    def __set_ref(self, val) : 
+        assert isinstance(val, str)
+        assert val in ("open", "close", "clos_op", "average")
+        self._ref = val
+
+    def __set_mkt(self, val) : 
+        assert isinstance(val, str)
+        assert val in ("open", "close")
+        self._mkt = val
+
+    ref         = property(__get_ref, __set_ref)
+    mkt         = property(__get_mkt, __set_mkt)
 
     def __repr__(self) : 
 
         return str(self.__dict__).replace(",", ";\n").replace(":", "=")
+
 
 
 class Position() : 
@@ -222,12 +272,31 @@ class Position() :
             assert size_type in ["val", "%"]
 
 
-        self.enable     = enable
-        self.bank_init  = bank_init
-        self.size_val   = size_val
-        self.size_type  = size_type
-        self.open_trade = False
-        self.last_buy   = -1.0 
+        self.enable         = enable
+        self.bank_init      = bank_init
+        self.size_val       = size_val
+        self.size_type      = size_type
+        self._open_trade    = False
+        self._last_buy      = -1.0 
+
+    def __get_open_trade(self) : 
+        return self._open_trade
+
+    def __get_last_buy(self) : 
+        return self._last_buy
+
+    def __set_open_trade(self, val) :
+        assert isinstance(val, bool) 
+        self._open_trade = val
+
+    def __set_last_buy(self, val) : 
+        assert isinstance(val, float)
+        assert ((val > 0.0) and (100000.0 > val)) 
+        self._last_buy = val
+
+
+    open_trade  = property(__get_open_trade, __set_open_trade)
+    last_buy    = property(__get_last_buy, __set_last_buy)
 
     def __repr__(self) : 
 
@@ -236,19 +305,19 @@ class Position() :
 
 class TradingParams() : 
 
-    def __init__(   self, version, enable_multi_trade, enable_long, enable_short,
-                    multi_trade_max = 99999, 
-                    bank_long_init=None, long_size_val=None,   long_size_type=None,
-                    bank_short_init=None, short_size_val=None, short_size_type=None): 
+    def __init__(   self, version, enable_multi_trade, multi_trade_max, enable_long, enable_short, 
+                    dual_bank, bank_init, 
+                    long_size_val=None,   long_size_type=None,
+                    short_size_val=None, short_size_type=None): 
 
-        assert (version.lower() in ["invest", "trading"])
 
-        self.multi_trade = MultiTrade(enable_multi_trade, multi_trade_max)
-        self.long        = Position(enable_long, bank_long_init, long_size_val, long_size_type)
-        self.short       = Position(enable_short,bank_short_init, short_size_val, short_size_type)
+        self.bank        = Bank(dual_bank, bank_init) 
+        self.multi_trade = MultiTrade(version, enable_multi_trade, multi_trade_max)
+        self.long        = Position(enable_long, self.bank.long_init, long_size_val, long_size_type)
+        self.short       = Position(enable_short,self.bank.short_init, short_size_val, short_size_type)
         self.price       = Price()
         self.first       = True
-        self.version     = version.lower()
+
    
 
     def update_before_trading(self, df, ref_price) : 
@@ -312,9 +381,10 @@ if not __name__ == '__main__':
                 TIME_SELECT=TIME_SELECT, TIME_START=TIME_START, TIME_STOP=TIME_STOP, FORCE_WORKDAYS=FORCE_WORKDAYS,
                 RANDOMIZE=RANDOMIZE, RANDOM_NB=RANDOM_NB, RANDOM_PERIOD_MIN=RANDOM_PERIOD_MIN, RANDOM_PERIOD_MAX=RANDOM_PERIOD_MAX, ENABLE_REVERSE=ENABLE_REVERSE,
                 GRAPHS=GRAPHS, TEMP_FILES=TEMP_FILES, PRINT_RESULTS=PRINT_RESULTS,
-                VERSION=VERSION,ENABLE_MULTI_TRADE=ENABLE_MULTI_TRADE, MULTI_TRADE_MAX=MULTI_TRADE_MAX, ENABLE_LONG=ENABLE_LONG, ENABLE_SHORT=ENABLE_SHORT,
-                LONG_BANK_INIT=LONG_BANK_INIT, LONG_SIZE_VAL=LONG_SIZE_VAL, LONG_SIZE_TYPE=LONG_SIZE_TYPE, 
-                SHORT_BANK_INIT=SHORT_BANK_INIT, SHORT_SIZE_VAL=SHORT_SIZE_VAL, SHORT_SIZE_TYPE=SHORT_SIZE_TYPE)
+                VERSION=VERSION,ENABLE_MULTI_TRADE=ENABLE_MULTI_TRADE, MULTI_TRADE_MAX=MULTI_TRADE_MAX, ENABLE_LONG=ENABLE_LONG, ENABLE_SHORT=ENABLE_SHORT, 
+                DUAL_BANK=DUAL_BANK, BANK_INIT=BANK_INIT, 
+                LONG_SIZE_VAL=LONG_SIZE_VAL, LONG_SIZE_TYPE=LONG_SIZE_TYPE, 
+                SHORT_SIZE_VAL=SHORT_SIZE_VAL, SHORT_SIZE_TYPE=SHORT_SIZE_TYPE)
 
     del ENABLE_MULTI_PROCESSING, NB_CORES,\
         PATH, FILE, FEES, \
@@ -322,9 +392,9 @@ if not __name__ == '__main__':
         TIME_SELECT, TIME_START, TIME_STOP, FORCE_WORKDAYS,\
         RANDOMIZE, RANDOM_NB, RANDOM_PERIOD_MIN, RANDOM_PERIOD_MAX, ENABLE_REVERSE,\
         GRAPHS, TEMP_FILES, PRINT_RESULTS,\
-        VERSION, ENABLE_MULTI_TRADE, MULTI_TRADE_MAX, ENABLE_LONG, ENABLE_SHORT,\
-        LONG_BANK_INIT, LONG_SIZE_VAL, LONG_SIZE_TYPE, \
-        SHORT_BANK_INIT, SHORT_SIZE_VAL, SHORT_SIZE_TYPE
+        VERSION, ENABLE_MULTI_TRADE, MULTI_TRADE_MAX, ENABLE_LONG, ENABLE_SHORT, DUAL_BANK, BANK_INIT,\
+        LONG_SIZE_VAL, LONG_SIZE_TYPE, \
+        SHORT_SIZE_VAL, SHORT_SIZE_TYPE
 
     # multiprocessing
     multi_process = MultiProcessing(C.ENABLE_MULTI_PROCESSING, C.NB_CORES)
@@ -346,9 +416,10 @@ if not __name__ == '__main__':
 
     # tradings params
     trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, 
+                                    C.DUAL_BANK, C.BANK_INIT,
                                     C.MULTI_TRADE_MAX, 
-                                    C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE,
-                                    C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
+                                    C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE,
+                                    C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
 
 
 

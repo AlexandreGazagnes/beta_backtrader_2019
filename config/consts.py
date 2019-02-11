@@ -90,14 +90,14 @@ ENABLE_LONG                 = True
 ENABLE_SHORT                = False
 # enable short, type bool
 
+DUAL_BANK                   = True
+BANK_INIT                   = -1
+# 
 
 
 # money management
 # ------------------------------------------------------------
 
-LONG_BANK_INIT              = 20
-# money reserved for long poisitions, type int 
-# if 0 will be egaml to first df price
 
 LONG_SIZE_VAL          = 7
 # fixed size of long positions, type int
@@ -106,7 +106,6 @@ LONG_SIZE_TYPE     = "val" # or "%"
 # consider POSITION_LONG_SIZE in an absolute value or in % of BANK_LONG_INIT
 # type str "val" or "%"
 
-SHORT_BANK_INIT             = 20
 SHORT_SIZE_VAL         = 7
 SHORT_SIZE_TYPE    = "val" # or "%"
 # idem but for short
