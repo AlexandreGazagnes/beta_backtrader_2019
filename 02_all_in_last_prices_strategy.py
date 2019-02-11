@@ -2,7 +2,6 @@
 # coding: utf-8
 
 
-
 ####################################################################
 ####################################################################
 
@@ -10,8 +9,6 @@
 
 ####################################################################
 ####################################################################
-
-
 
 
 ####################################################################
@@ -24,14 +21,13 @@ from collections import Iterable
 from copy import copy
 from time import gmtime, strftime, time
 from itertools import product
-
+from multiprocessing import Process
 
 # visualizitation
 import matplotlib.pyplot as plt
 import seaborn as sns
 %matplotlib
 sns.set()
-
 
 # src
 from src.misc       import *
@@ -43,110 +39,111 @@ from src.results    import *
 from strats         import *
 
 
-
 ####################################################################
 #       CONSTANTS
 ####################################################################
 
-# paths.data_file = '/home/alex/beta_backtrader_2019/data/eth_usd_ethermine_ok.csv' # paths = Path(C.PATH, C.FILE)
+# paths.data_file   = '/home/alex/beta_backtrader_2019/data/eth_usd_ethermine_ok.csv' # paths = Path(C.PATH, C.FILE)
 
-time_sel        = TimeSel(True, "1999-01-13", "2022-11-04") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
+time_sel            = TimeSel(False, "2016-01-13", "2017-11-04") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
 
-random_sel      = RandomSel(True, 5, 400, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
+random_sel          = RandomSel(True, 10, 400,  3*360, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.RANDOM_PERIOD_MAX, C.ENABLE_REVERSE)
 
-trading_params  = TradingParams( "trading", False, True, False, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
+trading_params      = TradingParams("trading", False, True, False, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
                                 99999, 
                                 1.3, 1.0, "%",
                                 1.3, 1.0, "%")
 
-strategy_dataframe = last_prices.strategy
+multi_process       = MultiProcessing(True, 6)    # multi_process = MultiProcessing(C.ENABLE_MULTI_PROCESSING, C.NB_CORES)
 
-
-CORES = 4
+strategy_dataframe  = last_prices.strategy
 
 
 ####################################################################
-#   MAIN
+#   INIT
 ####################################################################
  
-# init start
-# -----------------------------------------------------------
-
 # time it 
 t0 = time()
 
-
 #   init and prepare dataframe
-DF              = init_dataframe(paths.data_file, time_sel, enhance_date=True)
-pk_save(DF, "DF", paths.temp_path)
-
+DF                  = init_dataframe(paths.data_file, time_sel, enhance_date=True)
+pk_save(DF, "DF", paths.temp_path_dfs)
 
 # init our LOOPER
-REF_PRICES      = set_ref_prices(DF)
-REF_DAYS        = set_ref_days(DF)
-RAND_PERIODS    = set_rand_periods(DF, random_sel) 
-LAST_PRICES     = list(range(1, 6))
-LOOPER          = [i for i in product(RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES)]
+REF_PRICES          = set_ref_prices(DF)
+REF_DAYS            = set_ref_days(DF)
+RAND_PERIODS        = set_rand_periods(DF, random_sel)
+
+RAND_PERIODS        = [(pd.Timestamp("2017-01-01"), pd.Timestamp("2018-01-01"))]
+
+LAST_PRICES         = list(range(1, 6))
+LOOPER              = [i for i in product(RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES)]
 
 # init result handler
-axis_struct     = ("rand_periods", "last_prices", "ref_days", "ref_prices")
-data_label      = ("trd", "mkt")
-start_stop      = (str(DF.iloc[0]["date"]), str(DF.iloc[-1]["date"]))
-r = Results(axis_struct, data_label, start_stop)
-
+axis_struct         = ("rand_periods", "last_prices", "ref_days", "ref_prices")
+data_label          = ("trd", "mkt", "time")
+start_stop          = (str(DF.iloc[0]["date"]), str(DF.iloc[-1]["date"]))
+r                   = Results(axis_struct, data_label, start_stop, paths.data_file)
 
 # init graphs options
 # if output.graphs : fig, axs = plt.subplots(random_sel.nb, sharex=True)
 # if not isinstance(axs, Iterable) : axs = [axs,] 
 
-# -----------------------------------------------------------
-# init stop
+# timer
+timer = round(time() - t0, 4)
+print("timer init : ", str(timer))
+t1 = time()
 
 
+####################################################################
+#   TRADING
+####################################################################
 
+def trading(looper_start=-1, looper_stop=-1) :
 
-def trading(LOOPER) :
+    # args check
+    assert isinstance(looper_start, int)
+    assert isinstance(looper_stop, int)
+    if looper_start <0 : looper_start = 0
+    if looper_stop  <0 : looper_stop  = len(LOOPER)+1
 
+    # local trading params
     global trading_params
-    trd_params = copy(trading_params)
+    trd_params          = copy(trading_params)
 
-    # loop strat
-    # -----------------------------------------------------------
+    # main loop
+    for period, param, day, ref_price in LOOPER[looper_start : looper_stop] : 
 
-    for period, param, day, ref_price in LOOPER : 
+        t_loop          = time()
 
         # update df
-        df      = DF.copy()
-        df      = random_dataframe(df, period) 
-        df      = week_day_dataframe(df, day)
-        df      = strategy_dataframe(df, ref_price, param)            
-
+        df              = DF.copy()
+        df              = random_dataframe(df, period) 
+        df              = week_day_dataframe(df, day)
+        df              = strategy_dataframe(df, ref_price, param)            
 
         # update trading_params and trading
         trd_params.update_before_trading(df, ref_price)
-        df, trd_params = trading_room(df, trd_params, broker)
-
+        df, trd_params  = trading_room(df, trd_params, broker)
 
         # save temp_df if needed
-        # if output.dataframes : save_temp_df(df, [param, ref_price], paths.temp_path)
-
+        # if output.dataframes : save_temp_df(df, [param, ref_price], paths.temp_path_dfs)
 
         # compute gains and upadate results
-        rs = compute_trading_results(df, ref_price)
-        ser = (float_period(period), param, day, ref_price, rs[0], rs[1])
+        rs              = compute_trading_results(df, ref_price)
+        ser             = (float_period(period), param, day, ref_price, rs[0], rs[1], round(time() - t_loop, 4))
         # r.m.append(ser)
 
         # save results
-        filename = "_".join([str(i) for i in (float_period(period), param, day, ref_price)])
-        print(filename)
-        pk_save(ser, filename, paths.results_path)
-
+        filename        = "_".join([str(i) for i in (float_period(period), param, day, ref_price)])
+        # print(filename)
+        pk_save(ser, filename, paths.temp_path_results)
 
         # show results
         if output.prints :
-            print(str(float_period(period)), param, day, ref_price, rs)
+            print(ser)
             # print(f"\t{rs}\n")
-
 
         # grah results:
         #     axs[random_test].plot(df.date, df["total"])
@@ -154,39 +151,17 @@ def trading(LOOPER) :
         #     fig.savefig(PATH + "fig")
 
 
-# -----------------------------------------------------------
-# stop strat       
+####################################################################
+#   MAIN
+####################################################################
 
-
-
-# post prod strat
-# -----------------------------------------------------------
-
-# time it 
-timer = round(time() - t0,4)
-print(str(timer))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if not multi_process.val : 
+    trading()
+else : 
+    chks  = chunks(LOOPER, multi_process.nb_cores)
+    process_list = [Process(target=trading, args=chk) for chk in chks]
+    [i.start() for i in process_list]
+    [i.join()  for i in process_list]
 
 
 
@@ -206,4 +181,21 @@ print(str(timer))
 # s = input("end, check/moove temps files\n's' to save\nother to delete\n\n")
 # if s != "s" :  
 #     master_clean(paths.temp_path)
+
+
+timer = round(time() - t1, 4)
+print("timer process : ", str(timer))
+timer = round(time() - t0, 4)
+print("timer global : ", str(timer))
+
+
+####################################################################
+#   RESULTS
+####################################################################
+
+r.load(paths)
+print(r.m.groupby(by="last_prices").mean())
+
+
+
 

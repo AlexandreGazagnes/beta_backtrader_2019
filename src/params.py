@@ -14,6 +14,22 @@ from config.consts import *
 
 # params
 # -----------------------------------------------------------
+class MultiProcessing() : 
+
+    def __init__(self, val, nb_cores) : 
+
+        # check args
+        assert isinstance(val, bool)
+        assert isinstance(nb_cores, int)
+        assert ((nb_cores>0) and (nb_cores<=6))
+
+        self.val = val
+        self.nb_cores = nb_cores
+
+    def __repr__(self) : 
+
+        return str(self.__dict__).replace(",", ",\n")
+
 
 class Path() : 
 
@@ -40,6 +56,13 @@ class Path() :
 
         assert os.path.isdir(path+"temp/")
         self.temp_path = path+"temp/"
+
+        for fol in ["results", "dfs"] : 
+            if not os.path.isdir(path+"temp/"+fol+"/") : 
+                os.mkdir(path+"temp/"+fol+"/")
+
+        self.temp_path_results  = self.temp_path+"results/"
+        self.temp_path_dfs      = self.temp_path+"dfs/"
 
     def __repr__(self) : 
 
@@ -102,7 +125,7 @@ class TimeSel() :
 
 class RandomSel() : 
 
-    def __init__(self, val, nb=10, period_min=300, reverse=False) : 
+    def __init__(self, val, nb=0, period_min=360, period_max=3600,reverse=False) : 
         
         # check args
         assert isinstance(val, bool)         
@@ -119,11 +142,13 @@ class RandomSel() :
         if val : 
             self.nb         = nb
             self.period_min       = period_min
+            self.period_max       = period_max
             self.reverse    = reverse
         
         else :    
             self.nb         = 1
             self.period_min = None
+            self.period_max       = period_max
             self.reverse    = None        
 
     def __repr__(self) : 
@@ -281,23 +306,28 @@ class Consts() :
 
 if not __name__ == '__main__':
 
-    C = Consts( PATH=PATH,FILE=FILE, 
+    C = Consts( ENABLE_MULTI_PROCESSING=ENABLE_MULTI_PROCESSING, NB_CORES=NB_CORES,
+                PATH=PATH,FILE=FILE, 
                 FEES=FEES, SPREAD=SPREAD, ROLL_OVER=ROLL_OVER,
                 TIME_SELECT=TIME_SELECT, TIME_START=TIME_START, TIME_STOP=TIME_STOP, FORCE_WORKDAYS=FORCE_WORKDAYS,
-                RANDOMIZE=RANDOMIZE, RANDOM_NB=RANDOM_NB, RANDOM_PERIOD_MIN=RANDOM_PERIOD_MIN, ENABLE_REVERSE=ENABLE_REVERSE,
+                RANDOMIZE=RANDOMIZE, RANDOM_NB=RANDOM_NB, RANDOM_PERIOD_MIN=RANDOM_PERIOD_MIN, RANDOM_PERIOD_MAX=RANDOM_PERIOD_MAX, ENABLE_REVERSE=ENABLE_REVERSE,
                 GRAPHS=GRAPHS, TEMP_FILES=TEMP_FILES, PRINT_RESULTS=PRINT_RESULTS,
                 VERSION=VERSION,ENABLE_MULTI_TRADE=ENABLE_MULTI_TRADE, MULTI_TRADE_MAX=MULTI_TRADE_MAX, ENABLE_LONG=ENABLE_LONG, ENABLE_SHORT=ENABLE_SHORT,
                 LONG_BANK_INIT=LONG_BANK_INIT, LONG_SIZE_VAL=LONG_SIZE_VAL, LONG_SIZE_TYPE=LONG_SIZE_TYPE, 
                 SHORT_BANK_INIT=SHORT_BANK_INIT, SHORT_SIZE_VAL=SHORT_SIZE_VAL, SHORT_SIZE_TYPE=SHORT_SIZE_TYPE)
 
-    del PATH, FILE, FEES, \
+    del ENABLE_MULTI_PROCESSING, NB_CORES,\
+        PATH, FILE, FEES, \
         SPREAD, ROLL_OVER, \
         TIME_SELECT, TIME_START, TIME_STOP, FORCE_WORKDAYS,\
-        RANDOMIZE, RANDOM_NB, RANDOM_PERIOD_MIN, ENABLE_REVERSE,\
+        RANDOMIZE, RANDOM_NB, RANDOM_PERIOD_MIN, RANDOM_PERIOD_MAX, ENABLE_REVERSE,\
         GRAPHS, TEMP_FILES, PRINT_RESULTS,\
         VERSION, ENABLE_MULTI_TRADE, MULTI_TRADE_MAX, ENABLE_LONG, ENABLE_SHORT,\
         LONG_BANK_INIT, LONG_SIZE_VAL, LONG_SIZE_TYPE, \
         SHORT_BANK_INIT, SHORT_SIZE_VAL, SHORT_SIZE_TYPE
+
+    # multiprocessing
+    multi_process = MultiProcessing(C.ENABLE_MULTI_PROCESSING, C.NB_CORES)
 
     # paths
     paths = Path(C.PATH, C.FILE)
@@ -309,7 +339,7 @@ if not __name__ == '__main__':
     time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
 
     # random selection
-    random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.ENABLE_REVERSE)
+    random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.RANDOM_PERIOD_MAX, C.ENABLE_REVERSE)
 
     # Output
     output = Output(C.GRAPHS, C.TEMP_FILES, C.PRINT_RESULTS, paths.temp_path)

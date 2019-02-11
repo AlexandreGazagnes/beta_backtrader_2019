@@ -54,7 +54,9 @@ def set_rand_periods(df, random_sel) :
         while True : 
             start = np.random.randint(0, len(df.index)-1)   
             stop  = np.random.randint(start+1, len(df.index))
-            if (stop - start) > random_sel.period_min : break
+            stop_start = (stop - start) 
+            if ((stop_start >= random_sel.period_min) and (stop_start <= random_sel.period_max) ) : 
+                break
 
         start = df.iloc[start].loc["date"]
         stop  = df.iloc[stop].loc["date"]

@@ -13,7 +13,7 @@ from collections import Iterable
 
 # # data 
 import pandas as pd 
-# import numpy as np 
+import numpy as np 
 # import matplotlib.pyplot as plt
 # from mpl_finance import candlestick_ohlc
 
@@ -103,13 +103,27 @@ def float_period(t) :
 
 
 
-def chunks(l, n):
+# def chunks(l, n):
 
-    from math import ceil
+#     from math import ceil
 
-    n = len(l)/n
-    n = ceil(n)
+#     n = len(l)/n
+#     n = ceil(n)
     
-    """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
+#     """Yield successive n-sized chunks from l."""
+#     for i in range(0, len(l), n):
+#         yield l[i:i + n]
+
+
+
+def chunks(l, n) : 
+    from math import ceil
+    numbs =  [ceil(i) for i in np.linspace(0,len(l)+1, n+1)]    
+    pairs = list()
+    for i, val in enumerate(numbs) : 
+        try : 
+            pairs.append((numbs[i], numbs[i+1]))
+        except : 
+            return pairs
+
+

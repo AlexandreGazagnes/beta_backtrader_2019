@@ -2,13 +2,18 @@
 # coding: utf-8
 
 
+# multi processing
+# ------------------------------------------------------------
+
+ENABLE_MULTI_PROCESSING     = True
+NB_CORES                    = 6
 
 # file and path
 # ------------------------------------------------------------
 
 PATH                        = "/home/alex/beta_backtrader_2019/"
 FILE                        = "dowjones_usd_abcbourse_ok.csv"
-# FILE                      	= "eth_usd_ethermine_ok.csv"
+FILE                          = "eth_usd_ethermine_ok.csv"
 
 
 
@@ -39,13 +44,14 @@ FORCE_WORKDAYS                    = False
 # random periods
 # ------------------------------------------------------------
 
-RANDOMIZE                   = False         
+RANDOMIZE                           = False         
 # if you want to take a random sample of your dataset), type bool
-RANDOM_NB                   = 5             
+RANDOM_NB                           = 5             
 # number of random slices of the dataset, type int
-RANDOM_PERIOD_MIN                  = 100           
+RANDOM_PERIOD_MIN                   = 100           
+RANDOM_PERIOD_MAX                   = 3600
 # min perdiod of your random dataset (in days), type int
-ENABLE_REVERSE              = False         
+ENABLE_REVERSE                      = False         
 # if True 50% chance to take the random period in reverse order
 # from recent to old, type bool 
 
