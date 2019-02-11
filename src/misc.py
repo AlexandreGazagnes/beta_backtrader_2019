@@ -89,18 +89,24 @@ def save_temp_df(df, params, path) :
     df.to_csv(path+filename, index=False)
 
 
-def str_timestamp(t) : 
+def time_to_str_timestamp(t) : 
     return str(t).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
 
-def int_timestamp(t) : 
+def time_to_int_timestamp(t) : 
     return int(str(t).replace("-", "").replace(":","").replace(" ", "").replace("000000", ""))
 
-def float_period(t) : 
+def time_to_float_period(t) : 
     t0 = str(t[0]).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
     t1 = str(t[1]).replace("-", "").replace(":","").replace(" ", "").replace("000000", "")
     return float(t0+"."+t1)
 
+def float_to_time_period(t) : 
+    
+    assert isinstance(t, float)
+    t0, t1 = str(t).split(".")
+    t0, t1 = t0[:4]+"-"+t0[4:6]+"-"+t0[6:], t0[:4]+"-"+t1[4:6]+"-"+t1[6:]
 
+    return (pd.Timestamp(t0), pd.Timestamp(t1))
 
 
 # def chunks(l, n):

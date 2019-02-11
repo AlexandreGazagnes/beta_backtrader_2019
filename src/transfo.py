@@ -31,7 +31,7 @@ import numpy as np
 
 def set_ref_prices(df) : 
 
-    auth = ["open", "close", "average", "close_open"]
+    auth = ["open", "close", "average", "clos_op"]
     return [i for i in df.columns if i in auth]
 
 

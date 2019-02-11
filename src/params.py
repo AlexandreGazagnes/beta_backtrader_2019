@@ -266,7 +266,7 @@ class TradingParams() :
         self.price.ref              = ref_price
         
         # for average and close_open you have to buy at close
-        if  self.price.ref in ["average", "close_open"] :   self.price.mkt = "close"
+        if  self.price.ref in ["average", "clos_op"] :   self.price.mkt = "close"
         elif self.price.ref in ["high", "low", ""] :            raise ValueError("invalid ref_price")
         else :                                              self.price.mkt = self.price.ref
 

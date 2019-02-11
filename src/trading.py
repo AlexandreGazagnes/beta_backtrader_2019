@@ -26,7 +26,7 @@ def do_nothing(df, i, _type, mkt_price) :
     assert isinstance(_type, str)
     assert _type in ["long", "short"]
     assert isinstance(mkt_price, str)
-    assert mkt_price in ["open", "close", "average", "close_open"]
+    assert mkt_price in ["open", "close", "average", "clos_op"]
 
     try :     
         df.loc[i, _type + "_bank"]          = df.loc[i-1, _type + "_bank"]

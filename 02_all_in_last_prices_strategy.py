@@ -45,14 +45,14 @@ from strats         import *
 
 # paths.data_file   = '/home/alex/beta_backtrader_2019/data/eth_usd_ethermine_ok.csv' # paths = Path(C.PATH, C.FILE)
 
-time_sel            = TimeSel(False, "2016-01-13", "2017-11-04") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
+time_sel            = TimeSel(True, "2018-09-01", "2020-01-01") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
 
-random_sel          = RandomSel(True, 10, 400,  3*360, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.RANDOM_PERIOD_MAX, C.ENABLE_REVERSE)
+random_sel          = RandomSel(False, 10, 360,  10*360, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.RANDOM_PERIOD_MAX, C.ENABLE_REVERSE)
 
-trading_params      = TradingParams("trading", False, True, False, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
-                                99999, 
-                                1.3, 1.0, "%",
-                                1.3, 1.0, "%")
+trading_params      = TradingParams("trading", False, True, True, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
+                                    99999, 
+                                    1.3, 1.0, "%",
+                                    1.3, 1.0, "%")
 
 multi_process       = MultiProcessing(True, 6)    # multi_process = MultiProcessing(C.ENABLE_MULTI_PROCESSING, C.NB_CORES)
 
@@ -71,13 +71,10 @@ DF                  = init_dataframe(paths.data_file, time_sel, enhance_date=Tru
 pk_save(DF, "DF", paths.temp_path_dfs)
 
 # init our LOOPER
-REF_PRICES          = set_ref_prices(DF)
-REF_DAYS            = set_ref_days(DF)
-RAND_PERIODS        = set_rand_periods(DF, random_sel)
-
-RAND_PERIODS        = [(pd.Timestamp("2017-01-01"), pd.Timestamp("2018-01-01"))]
-
-LAST_PRICES         = list(range(1, 6))
+REF_PRICES          = set_ref_prices(DF)                # ["open", "close", "average", "clos_op"]
+REF_DAYS            = set_ref_days(DF)                  # [0, 1, 2, 3, 4]
+RAND_PERIODS        = set_rand_periods(DF, random_sel)  # list of random (timestamp_start, timestamp_stop)
+LAST_PRICES         = list(range(1, 6))                 
 LOOPER              = [i for i in product(RAND_PERIODS, LAST_PRICES, REF_DAYS , REF_PRICES)]
 
 # init result handler
@@ -132,17 +129,17 @@ def trading(looper_start=-1, looper_stop=-1) :
 
         # compute gains and upadate results
         rs              = compute_trading_results(df, ref_price)
-        ser             = (float_period(period), param, day, ref_price, rs[0], rs[1], round(time() - t_loop, 4))
+        ser             = (time_to_float_period(period), param, day, ref_price, rs[0], rs[1], round(time() - t_loop, 4))
         # r.m.append(ser)
 
         # save results
-        filename        = "_".join([str(i) for i in (float_period(period), param, day, ref_price)])
+        filename        = "_".join([str(i) for i in (time_to_float_period(period), param, day, ref_price)])
         # print(filename)
         pk_save(ser, filename, paths.temp_path_results)
 
         # show results
         if output.prints :
-            print(ser)
+            print("\t".join([str(i) for i in ser]))
             # print(f"\t{rs}\n")
 
         # grah results:
@@ -194,7 +191,7 @@ print("timer global : ", str(timer))
 ####################################################################
 
 r.load(paths)
-print(r.m.groupby(by="last_prices").mean())
+# print(r.m.groupby(by="last_prices").mean())
 
 
 

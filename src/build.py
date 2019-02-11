@@ -38,8 +38,8 @@ def init_dataframe(filepath, time_sel, enhance_date=True) :
 
 
     # add close_open
-    if (("open" and "close") in df.columns) and ("close_open" not in df.columns) : 
-        df["close_open"] = (df["open"] + df["close"]) / 2
+    if (("open" and "close") in df.columns) and ("clos_op" not in df.columns) : 
+        df["clos_op"] = (df["open"] + df["close"]) / 2
 
 
     # add average
