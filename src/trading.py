@@ -21,16 +21,25 @@ import pandas as pd
 # trading functions
 # -----------------------------------------------------------
 
-def roll_over_fees(df, i, trd_params) : 
+def pay_roll_over_fees(df, i, trd_params, broker) : 
 
-    price   = df.loc[i, trd_pm.price.mkt]
+    # position size
+    price   = df.loc[i, trd_params.price.mkt]
     quant   = df.loc[i, "short_quant"]
     bank    = price * quant 
+
+    # fees 
     fees    = bank * broker.roll_over
+    bank   -= fees
+
+    # update quant
+    quant   = bank / price
+    df.loc[i, "short_quant"] = quant  
+
     return df
 
 
-def do_nothing(df, i, _type, trd_params) : 
+def do_nothing(df, i, _type, trd_params, broker) : 
 
     # args check
     mkt_price = trd_params.price.mkt
@@ -56,7 +65,7 @@ def do_nothing(df, i, _type, trd_params) :
 
     if (trd_params.short.enable and trd_params.short.open_trade and (_type == "short")) : 
 
-        df = roll_over_fees(df, i, trd_params)
+        df = pay_roll_over_fees(df, i, trd_params, broker)
 
     return df 
     
@@ -266,8 +275,8 @@ def trading_room(df, trd_params, broker) :
             continue
 
         # do nothing
-        if trd_params.long.enable  :        df = do_nothing(df, i, "long", trd_params)   
-        if trd_params.short.enable :        df = do_nothing(df, i, "short", trd_params)
+        if trd_params.long.enable  :        df = do_nothing(df, i, "long", trd_params, broker)   
+        if trd_params.short.enable :        df = do_nothing(df, i, "short", trd_params, broker)
 
         # orders
         if trd_params.bank.dual : # orders order do nout count, long then short == short then long

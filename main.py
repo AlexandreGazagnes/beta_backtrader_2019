@@ -50,13 +50,13 @@ from strats         import *
 
 # paths.data_file   = '/home/alex/beta_backtrader_2019/data/eth_usd_ethermine_ok.csv' # paths = Path(C.PATH, C.FILE)
 
-time_sel            = TimeSel(True, "2006-01-01", "2020-01-01") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
+time_sel            = TimeSel(False, "2006-01-01", "2020-01-01") # time_sel = TimeSel(C.TIME_SELECT, C.TIME_START, C.TIME_STOP)
 
-random_sel          = RandomSel(True, 10, 100,  10*360, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.RANDOM_PERIOD_MAX, C.ENABLE_REVERSE)
+random_sel          = RandomSel(False, 10, 100,  10*360, False) # random_sel = RandomSel(C.RANDOMIZE, C.RANDOM_NB, C.RANDOM_PERIOD_MIN, C.RANDOM_PERIOD_MAX, C.ENABLE_REVERSE)
 
 trading_params      = TradingParams(    "trading", False, 99999, 
                                         True, True, 
-                                        False, 0.0, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.DUAL_BANK, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
+                                        False, 100, # trading_params = TradingParams( C.VERSION, C.ENABLE_MULTI_TRADE, C.ENABLE_LONG, C.ENABLE_SHORT, C.DUAL_BANK, C.MULTI_TRADE_MAX, C.LONG_BANK_INIT, C.LONG_SIZE_VAL, C.LONG_SIZE_TYPE, C.SHORT_BANK_INIT, C.SHORT_SIZE_VAL, C.SHORT_SIZE_TYPE)
                                         1.0, "%",
                                         1.0, "%")
 
