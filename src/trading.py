@@ -21,6 +21,15 @@ import pandas as pd
 # trading functions
 # -----------------------------------------------------------
 
+def roll_over_fees(df, i, trd_params) : 
+
+    price   = df.loc[i, trd_pm.price.mkt]
+    quant   = df.loc[i, "short_quant"]
+    bank    = price * quant 
+    fees    = bank * broker.roll_over
+    return df
+
+
 def do_nothing(df, i, _type, trd_params) : 
 
     # args check
@@ -44,6 +53,10 @@ def do_nothing(df, i, _type, trd_params) :
         df.loc[i, _type + "_order_value"]       = 0.0
     except : 
         raise ValueError("do nothing error", str(i), _type, mkt_price)
+
+    if (trd_params.short.enable and trd_params.short.open_trade and (_type == "short")) : 
+
+        df = roll_over_fees(df, i, trd_params)
 
     return df 
     
@@ -283,6 +296,10 @@ def trading_room(df, trd_params, broker) :
             else : 
                 raise ValueError("Something went wrong")
 
+    # update short counter
+    if trd_params.short.enable and trd_params.short.open_trade : 
+        trd_params.short.update_counter()
+    warning(trd_params.short.counter)
 
     # last round force to sell ! 
     i = df.index[-1]

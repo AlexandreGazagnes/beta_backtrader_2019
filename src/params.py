@@ -23,8 +23,11 @@ class MultiProcessing() :
         assert isinstance(nb_cores, int)
         assert ((nb_cores>0) and (nb_cores<=6))
 
-        self.val = val
-        self.nb_cores = nb_cores
+        # val
+        self.val        = val
+
+        # cores        
+        self.nb_cores   = nb_cores
 
     def __repr__(self) : 
 
@@ -38,29 +41,37 @@ class Path() :
         # check args
         if path[-1] != "/" : path += "/"
 
+        # if needed build internal folder architecture
         for fol in ['data', "results", "temp"] : 
             if not os.path.isdir(path+fol+"/") : 
                 os.mkdir(path+fol+"/")
 
+        # master
         assert os.path.isdir(path)
         self.master_path = path
        
+        # data  
         assert os.path.isdir(path+"data/")
         self.data_path = path+"data/"
 
+        # data file
         assert os.path.isfile(path+"data/"+filename)
         self.data_file = path+"data/"+filename
 
+        # results
         assert os.path.isdir(path+"results/")
         self.results_path = path+"results/"
 
+        # temp
         assert os.path.isdir(path+"temp/")
         self.temp_path = path+"temp/"
 
+        # if needed build internal temp/ folder architecture
         for fol in ["results", "dfs"] : 
             if not os.path.isdir(path+"temp/"+fol+"/") : 
                 os.mkdir(path+"temp/"+fol+"/")
 
+        # temp folders
         self.temp_path_results  = self.temp_path+"results/"
         self.temp_path_dfs      = self.temp_path+"dfs/"
 
@@ -78,8 +89,13 @@ class Broker() :
             assert isinstance(i, float)
             assert ((i >0.0) and (i < 0.05))
 
+        # fees
         self.fees           = fees
+        
+        # spread
         self.spread         = spread
+        
+        # roll over (renting fees for short)
         self.roll_over      = roll_over
 
     def __repr__(self) : 
@@ -104,7 +120,8 @@ class TimeSel() :
 
         assert pd.to_datetime(stop) > pd.to_datetime(start)
 
-        self.val            = val
+        # val
+        self.val                = val
         
         if val : 
             self.start          = start
@@ -137,18 +154,19 @@ class RandomSel() :
             assert ((period_min >= 10) and (365*30 >= period_min))                 
             assert isinstance(reverse, bool)
 
+        # val
         self.val = val
         
         if val : 
             self.nb         = nb
-            self.period_min       = period_min
-            self.period_max       = period_max
+            self.period_min = period_min
+            self.period_max = period_max
             self.reverse    = reverse
         
         else :    
             self.nb         = 1
             self.period_min = None
-            self.period_max       = period_max
+            self.period_max = period_max
             self.reverse    = None        
 
     def __repr__(self) : 
@@ -167,9 +185,16 @@ class Output() :
         if graphs or dataframes or prints : 
             assert os.path.isdir(path)
 
+        # graph
         self.graphs     = graphs
+        
+        # temp dataframe
         self.dataframes = dataframes
+
+        # print
         self.prints     = prints
+        
+        # ?????
         self.path       = path
 
     def __repr__(self) : 
@@ -181,12 +206,15 @@ class Bank() :
 
     def __init__(self, dual=True, init=-1) : 
 
+        # check agrs
         assert isinstance(dual, bool)
         assert (isinstance(init, int) or isinstance(init, float))
         assert ((init>= -1) and (init <= 10000))
 
+        # dual
         self.dual   = dual
         
+        # init
         if dual : 
             self.long_init  = round(init/2, 4)
             self.short_init = round(init/2, 4)
@@ -212,10 +240,14 @@ class MultiTrade():
             assert isinstance(multi_trade_max, int)  
             assert ((multi_trade_max >= 1) and (999999 >= multi_trade_max))         
 
+        # version
         self.version            = version.lower()
+        
+        # enable 
         self.enable             = enable
+        
+        # max number or // opened trades
         self.multi_trade_max    = multi_trade_max
-
 
     def __repr__(self) : 
 
@@ -225,15 +257,19 @@ class MultiTrade():
 class Price() : 
 
     def __init__(self) : 
+
+        # init
         self._ref = "open"
         self._mkt = "open"
 
+    # getters
     def __get_ref(self) : 
         return self._ref
 
     def __get_mkt(self) : 
         return self._mkt
 
+    # setters
     def __set_ref(self, val) : 
         assert isinstance(val, str)
         assert val in ("open", "close", "clos_op", "average")
@@ -244,6 +280,7 @@ class Price() :
         assert val in ("open", "close")
         self._mkt = val
 
+    # properties
     ref         = property(__get_ref, __set_ref)
     mkt         = property(__get_mkt, __set_mkt)
 
@@ -278,6 +315,7 @@ class Position() :
         self._last_buy      = 0.0
         self._counter       = 0
 
+    # getters
     def __get_open_trade(self) : 
         return self._open_trade
 
@@ -287,6 +325,7 @@ class Position() :
     def __get_counter(self) : 
         return self._counter
 
+    # setters
     def __set_open_trade(self, val) :
         assert isinstance(val, bool) 
         self._open_trade = val
@@ -301,12 +340,13 @@ class Position() :
         assert ((val >= 0) and (100000.>= val)) 
         self._counter = val
 
+    # properties
     open_trade  = property(__get_open_trade, __set_open_trade)
     last_buy    = property(__get_last_buy, __set_last_buy)
     counter     = property(__get_counter, __set_counter)
 
-    def update_counter():
-        pass
+    def update_counter(self):
+        self._counter +=1
 
     def __repr__(self) : 
         return str(self.__dict__).replace(",", ";\n").replace(":", "=")
@@ -315,12 +355,12 @@ class Position() :
 class TradingParams() : 
 
     def __init__(   self, version, enable_multi_trade, multi_trade_max, 
-                    enable_long, enable_short, 
-                    dual_bank, bank_init, 
-                    long_size_val=1,   long_size_type="%",
+                    enable_long=True, enable_short=True, 
+                    dual_bank=True, bank_init=100, 
+                    long_size_val=1,long_size_type="%",
                     short_size_val=1, short_size_type="%"): 
 
-
+        # init
         self.bank        = Bank(dual_bank, bank_init) 
         self.multi_trade = MultiTrade(version, enable_multi_trade, multi_trade_max)
         self.long        = Position(enable_long, long_size_val, long_size_type)
@@ -335,22 +375,28 @@ class TradingParams() :
         # agrs check
         assert isinstance(df, pd.DataFrame)
 
+        # first 
         self.first                  = True
+        
+        # long
         self.long.open_trade        = False        
         self.long.last_buy          = 0.0
+        self.long.counter           = 0
 
+        # short 
         self.short.open_trade       = False        
         self.short.last_buy         = 0.0
+        self.short.counter          = 0
 
+        # ref price
         self.price.ref              = ref_price
         
-        # for average and close_open you have to buy at close
+        # mkt price  ->  for average and close_open you have to buy at close
         if  self.price.ref in ["average", "clos_op"] :      self.price.mkt = "close"
         elif self.price.ref in ["high", "low", ""] :        raise ValueError("invalid ref_price")
         else :                                              self.price.mkt = self.price.ref
 
-        # update bank init as required
-
+        # bank
         if self.bank.dual : 
 
             if (self.multi_trade.version == "trading") and self.long.enable and (self.bank.long_init<=0.0): 
@@ -389,11 +435,11 @@ class TradingParams() :
             raise ValueError("Invest + short not avialable")
 
     def copy(self) : 
-        return TradingParams( self.multi_trade.version, self.multi_trade.enable, self.multi_trade.multi_trade_max, 
-                    self.long.enable, self.short.enable, 
-                    self.bank.dual, self.bank.init, 
-                    self.long.size_val, self.long.size_type,
-                    self.short.size_val, self.short.size_type)
+        return TradingParams(   self.multi_trade.version, self.multi_trade.enable, self.multi_trade.multi_trade_max, 
+                                self.long.enable, self.short.enable, 
+                                self.bank.dual, self.bank.init, 
+                                self.long.size_val, self.long.size_type,
+                                self.short.size_val, self.short.size_type)
 
     def __repr__(self) : 
 
