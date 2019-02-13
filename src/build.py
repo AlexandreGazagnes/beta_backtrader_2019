@@ -153,6 +153,11 @@ def init_dataframe(filepath, time_sel, trd_params, enhance_date=True) :
     df["total"]                     = 0.0
 
 
+    # cast as float
+    for i in ["open", "close", "high", "low", "average", "clos_op"] : 
+        try :       df[i] = df[i].astype('float64')  
+        except :    print("casting error")
+    
     return df
 
 

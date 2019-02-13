@@ -182,7 +182,7 @@ class Bank() :
     def __init__(self, dual=True, init=-1) : 
 
         assert isinstance(dual, bool)
-        assert isinstance(init, int)
+        assert (isinstance(init, int) or isinstance(init, float))
         assert ((init>= -1) and (init <= 10000))
 
         self.dual   = dual
@@ -288,7 +288,7 @@ class Position() :
         self._open_trade = val
 
     def __set_last_buy(self, val) : 
-        assert isinstance(val, float)
+        assert (isinstance(val, float) or isinstance(val, int))
         assert ((val >= 0.0) and (100000.0 >= val)) 
         self._last_buy = val
 
@@ -301,7 +301,8 @@ class Position() :
 
 class TradingParams() : 
 
-    def __init__(   self, version, enable_multi_trade, multi_trade_max, enable_long, enable_short, 
+    def __init__(   self, version, enable_multi_trade, multi_trade_max, 
+                    enable_long, enable_short, 
                     dual_bank, bank_init, 
                     long_size_val=1,   long_size_type="%",
                     short_size_val=1, short_size_type="%"): 
@@ -374,6 +375,12 @@ class TradingParams() :
         if (self.multi_trade.version == "invest") and self.short.enable : 
             raise ValueError("Invest + short not avialable")
 
+    def copy(self) : 
+        return TradingParams( self.multi_trade.version, self.multi_trade.enable, self.multi_trade.multi_trade_max, 
+                    self.long.enable, self.short.enable, 
+                    self.bank.dual, self.bank.init, 
+                    self.long.size_val, self.long.size_type,
+                    self.short.size_val, self.short.size_type)
 
     def __repr__(self) : 
 
