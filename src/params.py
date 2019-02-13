@@ -276,12 +276,16 @@ class Position() :
         self.size_type      = size_type
         self._open_trade    = False
         self._last_buy      = 0.0
+        self._counter       = 0
 
     def __get_open_trade(self) : 
         return self._open_trade
 
     def __get_last_buy(self) : 
         return self._last_buy
+
+    def __get_counter(self) : 
+        return self._counter
 
     def __set_open_trade(self, val) :
         assert isinstance(val, bool) 
@@ -292,8 +296,17 @@ class Position() :
         assert ((val >= 0.0) and (100000.0 >= val)) 
         self._last_buy = val
 
+    def __set_counter(self, val) : 
+        assert isinstance(val, int)
+        assert ((val >= 0) and (100000.>= val)) 
+        self._counter = val
+
     open_trade  = property(__get_open_trade, __set_open_trade)
     last_buy    = property(__get_last_buy, __set_last_buy)
+    counter     = property(__get_counter, __set_counter)
+
+    def update_counter():
+        pass
 
     def __repr__(self) : 
         return str(self.__dict__).replace(",", ";\n").replace(":", "=")
