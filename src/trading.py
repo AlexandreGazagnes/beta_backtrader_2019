@@ -26,15 +26,16 @@ def pay_roll_over_fees(df, i, trd_params, broker) :
     # position size
     price   = df.loc[i, trd_params.price.mkt]
     quant   = df.loc[i, "short_quant"]
-    bank    = price * quant 
+    bank    = price *  -quant 
 
     # fees 
     fees    = bank * broker.roll_over
-    bank   -= fees
+    # warning(fees)
 
-    # update quant
-    quant   = bank / price
-    df.loc[i, "short_quant"] = quant  
+    if trd_params.bank.dual : 
+        df.loc[i, "short_bank"] -= fees
+    else : 
+        df.loc[i, "bank"] -= fees
 
     return df
 
@@ -305,11 +306,6 @@ def trading_room(df, trd_params, broker) :
             else : 
                 raise ValueError("Something went wrong")
 
-    # update short counter
-    if trd_params.short.enable and trd_params.short.open_trade : 
-        trd_params.short.update_counter()
-    warning(trd_params.short.counter)
-
     # last round force to sell ! 
     i = df.index[-1]
     if trd_params.long.enable :
@@ -342,11 +338,11 @@ def compute_trading_results(df, ref_price) :
 
     market_start = df[ref_price].iloc[0]
     market_stop  = df[ref_price].iloc[-1]
-    market_results = round((market_stop - market_start) / market_start, 2)
+    market_results = round((market_stop - market_start) / market_start, 4)
 
     trade_start = df["total"].iloc[0]
     trade_stop  = df["total"].iloc[-1]
-    trade_results = round((trade_stop - trade_start) / trade_start, 2)
+    trade_results = round((trade_stop - trade_start) / trade_start, 4)
 
     return (trade_results, market_results)
 

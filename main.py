@@ -103,7 +103,7 @@ t1 = time()
 ####################################################################
 
 
-def trading(looper_start=-1, looper_stop=-1) :
+def back_trade(looper_start=-1, looper_stop=-1) :
     
     # args check
     assert isinstance(looper_start, int)
@@ -129,7 +129,8 @@ def trading(looper_start=-1, looper_stop=-1) :
 
         # compute gains and upadate results
         rs              = compute_trading_results(df, ref_price)
-        ser             = (time_to_float_period(period), param, day, ref_price, rs[0], rs[1], round(time() - t_loop, 4))
+        ser             = ( time_to_float_period(period), param, day, ref_price, 
+                            round(rs[0], 2), round(rs[1], 2), round(time() - t_loop, 4))
         # r.m.append(ser)
 
         # save results
@@ -149,10 +150,10 @@ def trading(looper_start=-1, looper_stop=-1) :
 
 # multiprocessing
 if not multi_process.val : 
-    trading()
+    back_trade()
 else : 
     chks  = chunks(LOOPER, multi_process.nb_cores)
-    process_list = [Process(target=trading, args=chk) for chk in chks]
+    process_list = [Process(target=back_trade, args=chk) for chk in chks]
     [i.start() for i in process_list]
     [i.join()  for i in process_list]
 

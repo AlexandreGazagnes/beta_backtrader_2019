@@ -27,7 +27,6 @@ SPREAD                              = 0.1 / 100
 # malus + or - between the price you
 # ask the price you have(per order)
 ROLL_OVER                           = 0.06 / 100
-ROLL_OVER                           = 1 / 100
 # renting fees fort short (for 24h)      
 
 
